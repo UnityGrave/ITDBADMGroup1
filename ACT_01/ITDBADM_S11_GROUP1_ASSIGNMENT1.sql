@@ -31,6 +31,11 @@ CREATE TABLE agency(
 
 -- (2)  Delete the first two housemates evicted. (AC and Ashley)
 
+SELECT*FROM housemates;
+
+DELETE FROM housemates
+WHERE ID IN (1,2);
+
 -- (3)  Show the agency of the housemate (Star Magic or Sparkle)
 
 -- (4) Add a new housemate (Bianca)
