@@ -26,7 +26,6 @@ CREATE TABLE agency(
 	id INT NOT NULL,
     agencyName VARCHAR(50),
     CONSTRAINT agency_PK PRIMARY KEY (id)
-    -- CONSTRAINT agency_FK FOREIGN KEY (id) REFERENCES housemates(id)
 )
 
 -- (2)  Delete the first two housemates evicted. (AC and Ashley)
@@ -38,4 +37,11 @@ WHERE ID IN (1,2);
 
 -- (3)  Show the agency of the housemate (Star Magic or Sparkle)
 
+SELECT a.id, a.agencyName, h.firstName, h.lastName
+FROM agency a
+INNER JOIN housemates h ON a.id = h.id;
+
 -- (4) Add a new housemate (Bianca)
+
+INSERT INTO housemates (id, firstName, lastName, gender, age, hometown, dayEntered)
+VALUES (16, 'Bianca', 'de Vera', 'Female', 23, 'Taguig', 22)
