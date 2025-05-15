@@ -35,6 +35,20 @@ GROUP BY r.rental_id;
 
 -- Expected Output Columns: customer_id, first_name, last_name, rental_id, rental_duration_days
 
+select*from customer;
+select*from rental;
+
+select rental_id, rental_date, return_date
+from rental
+where return_date IS NOT NULL;
+
+SELECT c.customer_id, c.first_name, c.last_name,
+		r.rental_id, DATEDIFF(r.return_date, r.rental_date) AS rental_duration_days
+FROM customer c
+JOIN rental r ON c.customer_id = r.customer_id;
+WHERE r.return_date IS NOT NULL;
+
+
 ---
 
 -- Task 3: Count Rentals per Film
