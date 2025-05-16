@@ -12,16 +12,11 @@
 
 -- Expected Output Columns: customer_id, first_name , last_name , total_rental
 
-
-SELECT * FROM customer;
-SELECT * FROM rental;
-
-SELECT c.customer_id, c.first_name, c.last_name, r.rental_id, COUNT(*) AS total_rental
+SELECT c.customer_id, c.first_name, c.last_name, COUNT(r.rental_id) AS total_rental
 FROM customer c
 JOIN rental r ON c.customer_id = r.customer_id
-GROUP BY r.rental_id;
-
-----
+GROUP BY c.customer_id
+ORDER BY total_rental DESC;
 
 -- Task 2: Calculate Rental Duration
 
@@ -35,17 +30,10 @@ GROUP BY r.rental_id;
 
 -- Expected Output Columns: customer_id, first_name, last_name, rental_id, rental_duration_days
 
-select*from customer;
-select*from rental;
-
-select rental_id, rental_date, return_date
-from rental
-where return_date IS NOT NULL;
-
 SELECT c.customer_id, c.first_name, c.last_name,
 		r.rental_id, DATEDIFF(r.return_date, r.rental_date) AS rental_duration_days
 FROM customer c
-JOIN rental r ON c.customer_id = r.customer_id;
+JOIN rental r ON c.customer_id = r.customer_id
 WHERE r.return_date IS NOT NULL;
 
 
@@ -64,16 +52,7 @@ WHERE r.return_date IS NOT NULL;
 -- Expected Output Columns: title, total_rentals
 
 
-SELECT * FROM film;
-SELECT * FROM inventory; -- film_id
-SELECT * FROM rental; -- inventory_id 
-
-SELECT f.title, r.rental_id
-FROM film f
-JOIN inventory i ON f.film_id = i.film_id
-JOIN rental r ON r.inventory_id = i.inventory_id;
-
-SELECT f.title, COUNT(*) AS total_rentals
+SELECT f.title, COUNT(r.rental_id) AS total_rentals
 FROM film f
 JOIN inventory i ON f.film_id = i.film_id
 JOIN rental r ON r.inventory_id = i.inventory_id
@@ -94,9 +73,9 @@ ORDER BY total_rentals ASC;
 
 -- Expected Output Columns: customer_id, first_name, last_name, total_rental\
 
-
-
-
-
-
----
+SELECT c.customer_id, c.first_name, c.last_name, COUNT(r.rental_id) AS total_rental
+FROM customer c
+JOIN rental r ON c.customer_id = r.customer_id
+GROUP BY c.customer_id
+HAVING total_rental > 17
+ORDER BY total_rental ASC;
