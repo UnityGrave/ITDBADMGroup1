@@ -37,6 +37,35 @@ $$ DELIMITER ;
 -- Expected Behavior: E.g. When a film’s rental_rate is updated from 2.99 to 3.99, a new row is inserted into film_price_audit with the old and new values.
 -- --
 
+USE sakila;
+
+CREATE TABLE film_price_audit (
+    audit_id INT AUTO_INCREMENT PRIMARY KEY,
+    film_id SMALLINT,
+    old_price DECIMAL(4,2),
+    new_price DECIMAL(4,2),
+    change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+DELIMITER $$
+
+CREATE TRIGGER after_update_film_rental_rate
+AFTER UPDATE ON film
+FOR EACH ROW
+BEGIN
+    IF OLD.rental_rate != NEW.rental_rate THEN
+        INSERT INTO film_price_audit (film_id, old_price, new_price)
+        VALUES (NEW.film_id, OLD.rental_rate, NEW.rental_rate);
+    END IF;
+END$$
+
+DELIMITER ;
+
+UPDATE film
+SET rental_rate = 9.99
+WHERE film_id = 1;
+
+
 -- Task 3: Handle Deletes with Archive Table
 -- Scenario: The business wants to keep a record of any film that is deleted for auditing purposes.
 -- Task:
