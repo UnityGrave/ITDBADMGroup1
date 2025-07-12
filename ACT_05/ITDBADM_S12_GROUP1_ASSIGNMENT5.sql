@@ -77,3 +77,62 @@ WHERE film_id = 1;
 
 -- Expected Behavior: When a film is deleted from film, its data is preserved in the film_archive table.
 -- ---
+
+
+USE sakila;
+
+CREATE TABLE film_archive (
+    film_id SMALLINT UNSIGNED NOT NULL,
+    title VARCHAR(128) NOT NULL,
+    description TEXT DEFAULT NULL,
+    release_year YEAR DEFAULT NULL,
+    language_id TINYINT UNSIGNED NOT NULL,
+    original_language_id TINYINT UNSIGNED DEFAULT NULL,
+    rental_duration TINYINT UNSIGNED NOT NULL DEFAULT 3,
+    rental_rate DECIMAL(4,2) NOT NULL DEFAULT 4.99,
+    length SMALLINT UNSIGNED DEFAULT NULL,
+    replacement_cost DECIMAL(5,2) NOT NULL DEFAULT 19.99,
+    rating ENUM('G','PG','PG-13','R','NC-17') DEFAULT 'G',
+    special_features SET('Trailers','Commentaries','Deleted Scenes','Behind the Scenes') DEFAULT NULL,
+    last_update TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (film_id)
+);
+
+DELIMITER $$
+
+CREATE TRIGGER archive_deleted_film
+AFTER DELETE ON film
+FOR EACH ROW
+BEGIN
+    INSERT INTO film_archive (
+        film_id, 
+				title, 
+				description, 
+				release_year, 
+				language_id,
+        original_language_id, 
+				rental_duration, 
+				rental_rate, 
+				length,
+        replacement_cost, 
+				rating, 
+				special_features,
+				last_update
+    ) VALUES (
+				OLD.film_id, 
+				OLD.title,
+				OLD.description,
+				OLD.release_year, 
+				OLD.language_id,
+        OLD.original_language_id, 
+				OLD.rental_duration, 
+				OLD.rental_rate, 
+				OLD.length,
+        OLD.replacement_cost, 
+				OLD.rating, 
+				OLD.special_features, 
+				OLD.last_update
+    );
+END;
+
+$$ DELIMITER ;
