@@ -136,3 +136,21 @@ BEGIN
 END;
 
 $$ DELIMITER ;
+
+
+INSERT INTO film (
+    title, description, release_year, language_id,
+    rental_duration, rental_rate, length,
+    replacement_cost, rating, special_features
+)
+VALUES (
+    'Trigger Test Movie', 'A film to test delete trigger.', 2025, 1,
+    7, 3.99, 100,
+    15.99, 'PG-13', 'Trailers,Commentaries'
+);
+
+
+DELETE FROM film WHERE film_id = 1001;
+
+
+SELECT * FROM sakila.film_archive;
