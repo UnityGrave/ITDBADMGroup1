@@ -8,7 +8,7 @@
 -- ---
 
 
--- use sakila
+USE sakila;
 
 DELIMITER $$
 CREATE TRIGGER enforce_business_rule
@@ -24,6 +24,11 @@ END;
 
 $$ DELIMITER ;
 
+INSERT INTO film (title, language_id, rental_rate)
+VALUES ('Too Expensive Film', 1, 10.00);
+
+INSERT INTO film (title, language_id, rental_rate)
+VALUES ('Too Expensive Film', 1, 15.00);
 
 -- Task 2: Maintain Audit Log for Price Change
 -- Scenario: The company wants to track all price changes for films.
