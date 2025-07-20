@@ -105,11 +105,11 @@
                             <p class="text-sm text-gray-600">Update your account details</p>
                         </a>
                         
-                        <div class="bg-purple-50 rounded-lg p-4 text-center">
-                            <div class="text-purple-600 text-2xl mb-2">🛍️</div>
-                            <h5 class="font-medium text-gray-800">Shop</h5>
-                            <p class="text-sm text-gray-600">Browse products (Coming Soon)</p>
-                        </div>
+                        <a href="{{ route('test.defense-in-depth') }}" class="bg-purple-50 hover:bg-purple-100 rounded-lg p-4 text-center transition-colors">
+                            <div class="text-purple-600 text-2xl mb-2">🛡️</div>
+                            <h5 class="font-medium text-gray-800">Defense-in-Depth Security</h5>
+                            <p class="text-sm text-gray-600">Test Gatekeeper + Vault RBAC</p>
+                        </a>
                         
                         <div class="bg-green-50 rounded-lg p-4 text-center">
                             <div class="text-green-600 text-2xl mb-2">📊</div>

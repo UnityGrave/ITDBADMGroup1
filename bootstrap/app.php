@@ -11,7 +11,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Register custom CheckRole middleware
+        $middleware->alias([
+            'role' => \App\Http\Middleware\CheckRole::class,
+            'db.connection' => \App\Http\Middleware\SwitchDatabaseConnection::class,
+        ]);
+        
+        // Apply database connection switching to all web routes
+        $middleware->web(append: [
+            \App\Http\Middleware\SwitchDatabaseConnection::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -275,12 +275,104 @@ After setup, verify everything is working:
 3. **Database**: Use phpMyAdmin or run migrations as needed
 4. **Stop**: `docker-compose down` (when done for the day)
 
+### 🛡️ Database-Layer Security (RBAC)
+
+This application implements **defense-in-depth security** with MySQL roles that mirror Laravel application roles. This provides database-level protection even if the application layer is compromised.
+
+#### MySQL Roles Created
+
+The application creates three MySQL roles through Laravel migrations:
+
+| MySQL Role | Application Role | Privileges | Use Case |
+|------------|------------------|------------|----------|
+| `konibui_admin` | Admin | `SELECT`, `INSERT`, `UPDATE`, `DELETE` on all tables | Full administrative access |
+| `konibui_employee` | Employee | `SELECT`, `INSERT`, `UPDATE` on limited tables | Staff operations, cannot delete |
+| `konibui_customer` | Customer | `SELECT`, `UPDATE` on user profile, `SELECT` on products | Customer-facing operations only |
+
+#### Creating Database Users for Testing
+
+To test database-level security, create MySQL users and assign them roles:
+
+```sql
+-- Connect to MySQL as root
+docker-compose exec db mysql -uroot -proot_password
+
+-- Create database users for each role
+CREATE USER 'admin_user'@'%' IDENTIFIED BY 'admin_test_pass';
+CREATE USER 'employee_user'@'%' IDENTIFIED BY 'employee_test_pass';
+CREATE USER 'customer_user'@'%' IDENTIFIED BY 'customer_test_pass';
+
+-- Grant roles to users
+GRANT 'konibui_admin' TO 'admin_user'@'%';
+GRANT 'konibui_employee' TO 'employee_user'@'%';
+GRANT 'konibui_customer' TO 'customer_user'@'%';
+
+-- Activate roles as default
+ALTER USER 'admin_user'@'%' DEFAULT ROLE 'konibui_admin';
+ALTER USER 'employee_user'@'%' DEFAULT ROLE 'konibui_employee';
+ALTER USER 'customer_user'@'%' DEFAULT ROLE 'konibui_customer';
+
+FLUSH PRIVILEGES;
+```
+
+#### Testing with Restricted Database Users
+
+To test the application with restricted database access, update your `.env` file:
+
+**For Admin Testing:**
+```env
+DB_USERNAME=admin_user
+DB_PASSWORD=admin_test_pass
+```
+
+**For Employee Testing:**
+```env
+DB_USERNAME=employee_user
+DB_PASSWORD=employee_test_pass
+```
+
+**For Customer Testing:**
+```env
+DB_USERNAME=customer_user
+DB_PASSWORD=customer_test_pass
+```
+
+#### Running the Database Security Migration
+
+The MySQL roles are created automatically when you run Laravel migrations:
+
+```bash
+# Run the migration to create MySQL roles
+docker-compose exec app php artisan migrate
+
+# Rollback the roles (if needed)
+docker-compose exec app php artisan migrate:rollback
+```
+
+#### Verifying Database-Level Security
+
+Test that database-level restrictions work:
+
+```bash
+# Test customer user cannot delete (should fail)
+docker-compose exec db mysql -ucustomer_user -pcustomer_test_pass -e "DELETE FROM konibui.users WHERE id=1;"
+
+# Test employee user cannot delete users (should fail)
+docker-compose exec db mysql -uemployee_user -pemployee_test_pass -e "DELETE FROM konibui.users WHERE id=1;"
+
+# Test admin user can perform all operations (should work)
+docker-compose exec db mysql -uadmin_user -padmin_test_pass -e "SELECT COUNT(*) FROM konibui.users;"
+```
+
 ### 🛡️ Security Notes
 
+- **Defense-in-Depth**: Application-level AND database-level security
+- **Principle of Least Privilege**: Each role has minimum required permissions
 - Default passwords are for **development only**
 - Change all credentials before deploying to production
 - The database port is not exposed externally for security
 - All services communicate via Docker internal network
+- Database roles provide protection even if application is compromised
 
 ### 🎯 Next Steps
 
