@@ -2,8 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome');
+// Home page route
+Route::view('/', 'welcome')->name('home');
 
+// Authenticated user routes
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -11,6 +13,40 @@ Route::view('dashboard', 'dashboard')
 Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
+
+Route::view('profile/edit', 'profile')
+    ->middleware(['auth'])
+    ->name('profile.edit');
+
+// Products routes
+Route::prefix('products')->group(function () {
+    Route::get('/', function () {
+        return view('products.index', [
+            'pageTitle' => 'Product Catalog',
+            'pageDescription' => 'Browse our collection of products'
+        ]);
+    })->name('products.index');
+});
+
+// Orders routes (requires authentication)
+Route::prefix('orders')->middleware('auth')->group(function () {
+    Route::get('/', function () {
+        return view('orders.index', [
+            'pageTitle' => 'My Orders',
+            'pageDescription' => 'View your order history and status'
+        ]);
+    })->name('orders.index');
+});
+
+// Admin routes (requires admin or employee role)
+Route::prefix('admin')->middleware(['auth', 'role:Admin,Employee'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard', [
+            'pageTitle' => 'Admin Dashboard',
+            'pageDescription' => 'Manage users, orders, and system settings'
+        ]);
+    })->name('admin.dashboard');
+});
 
 // Authorization Test Routes
 Route::prefix('test')->middleware('auth')->group(function () {
