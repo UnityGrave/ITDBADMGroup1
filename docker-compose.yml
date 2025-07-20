@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: konibui_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-konibui}
+      - DB_USERNAME=${DB_USERNAME:-konibui_user}
+      - DB_PASSWORD=${DB_PASSWORD:-konibui_password}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - konibui_network
+
+  db:
+    image: mysql:8.0
+    container_name: konibui_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-konibui}
+      MYSQL_USER: ${DB_USERNAME:-konibui_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-konibui_password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+    volumes:
+      - konibui_db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root_password}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - konibui_network
+
+  webserver:
+    image: nginx:alpine
+    container_name: konibui_webserver
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - konibui_network
+
+  db-admin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: konibui_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USERNAME:-konibui_user}
+      PMA_PASSWORD: ${DB_PASSWORD:-konibui_password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+    ports:
+      - "8081:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - konibui_network
+
+volumes:
+  konibui_db_data:
+    driver: local
+
+networks:
+  konibui_network:
+    driver: bridge
