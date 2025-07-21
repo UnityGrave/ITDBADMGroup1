@@ -116,6 +116,30 @@
                             <h5 class="font-medium text-gray-800">Orders</h5>
                             <p class="text-sm text-gray-600">View order history (Coming Soon)</p>
                         </div>
+
+                        <!-- Admin Quick Actions -->
+                        @if(Auth::user()->hasRole('Admin'))
+                            <a href="{{ route('admin.sets') }}" class="bg-yellow-50 hover:bg-yellow-100 rounded-lg p-4 text-center transition-colors">
+                                <div class="text-yellow-600 text-2xl mb-2">🗂️</div>
+                                <h5 class="font-medium text-gray-800">Manage Sets</h5>
+                                <p class="text-sm text-gray-600">Add or edit TCG sets</p>
+                            </a>
+                            <a href="{{ route('admin.rarities') }}" class="bg-pink-50 hover:bg-pink-100 rounded-lg p-4 text-center transition-colors">
+                                <div class="text-pink-600 text-2xl mb-2">💎</div>
+                                <h5 class="font-medium text-gray-800">Manage Rarities</h5>
+                                <p class="text-sm text-gray-600">Add or edit card rarities</p>
+                            </a>
+                            <a href="{{ route('admin.cards') }}" class="bg-indigo-50 hover:bg-indigo-100 rounded-lg p-4 text-center transition-colors">
+                                <div class="text-indigo-600 text-2xl mb-2">🃏</div>
+                                <h5 class="font-medium text-gray-800">Manage Cards</h5>
+                                <p class="text-sm text-gray-600">Add or edit Pokémon cards</p>
+                            </a>
+                            <a href="{{ route('admin.products') }}" class="bg-orange-50 hover:bg-orange-100 rounded-lg p-4 text-center transition-colors">
+                                <div class="text-orange-600 text-2xl mb-2">📦</div>
+                                <h5 class="font-medium text-gray-800">Manage Products</h5>
+                                <p class="text-sm text-gray-600">Manage product variants & inventory</p>
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Livewire\Admin\SetsPage;
+use App\Livewire\Admin\RaritiesPage;
+use App\Livewire\Admin\CardsPage;
+use App\Livewire\Admin\ProductsPage;
+
 // Home page route
 Route::view('/', 'welcome')->name('home');
 
@@ -46,6 +51,14 @@ Route::prefix('admin')->middleware(['auth', 'role:Admin,Employee'])->group(funct
             'pageDescription' => 'Manage users, orders, and system settings'
         ]);
     })->name('admin.dashboard');
+});
+
+// Admin routes (requires admin role)
+Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
+    Route::get('/sets', SetsPage::class)->name('admin.sets');
+    Route::get('/rarities', RaritiesPage::class)->name('admin.rarities');
+    Route::get('/cards', CardsPage::class)->name('admin.cards');
+    Route::get('/products', ProductsPage::class)->name('admin.products');
 });
 
 // Authorization Test Routes
