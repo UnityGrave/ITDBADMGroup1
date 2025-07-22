@@ -72,6 +72,8 @@ This project uses Docker Compose to orchestrate a complete development environme
 
 - Docker Desktop installed and running
 - Git for version control
+- Composer (for local dependency management)
+- Node.js and npm (for asset compilation)
 - At least 4GB of available RAM
 
 ### Quick Setup
@@ -80,13 +82,23 @@ Follow these simple steps to get your development environment running:
 
 #### 1. Clone the Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/yourusername/ITDBADMGroup1.git
 cd ITDBADMGroup1
 ```
 
-#### 2. Create Environment Configuration
+### 2. **Environment Setup**
 ```bash
+# Copy environment file
 cp .env.example .env
+
+# Update these values in .env
+APP_NAME=Konibui
+APP_URL=http://localhost:8080
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_DATABASE=konibui
+DB_USERNAME=konibui_user
+DB_PASSWORD=konibui_password
 ```
 
 #### 3. Build and Start the Environment
@@ -96,22 +108,30 @@ docker-compose up -d --build
 
 #### 4. Install Laravel Dependencies
 ```bash
+# Install PHP dependencies
 docker-compose exec app composer install
+
+# Install Node.js dependencies
+npm install
+
+# Build assets
+npm run build
 ```
 
-#### 5. Generate Application Key
+#### 5. Generate Application Key and Initialize Database
 ```bash
+# Generate application key
 docker-compose exec app php artisan key:generate
-```
 
-#### 6. Run Database Migrations
-```bash
+### 6 .Run database migrations
 docker-compose exec app php artisan migrate
-```
 
-#### 7. Cache Configuration (Optional but Recommended)
-```bash
-docker-compose exec app php artisan config:cache
+# Seed the database with initial data
+docker-compose exec app php artisan db:seed
+
+or
+
+docker-compose exec app php artisan migrate:fresh --seed
 ```
 
 ### 🌐 Access Points
