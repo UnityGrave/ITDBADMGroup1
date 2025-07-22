@@ -17,31 +17,34 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             RaritySeeder::class,
             SetSeeder::class,
+            CardSeeder::class,
+            ProductSeeder::class,
+            InventorySeeder::class,
             RoleSeeder::class,
             AdminUserSeeder::class,
         ]);
 
         // Create test users
         $adminUser = User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@konibui.com',
+            "name" => "Admin User",
+            "email" => "admin@konibui.com",
         ]);
 
         $employeeUser = User::factory()->create([
-            'name' => 'Employee User',
-            'email' => 'employee@konibui.com',
+            "name" => "Employee User",
+            "email" => "employee@konibui.com",
         ]);
 
         $customerUser = User::factory()->create([
-            'name' => 'Test Customer',
-            'email' => 'test@example.com',
+            "name" => "Test Customer",
+            "email" => "test@example.com",
         ]);
 
         // Assign roles to test users
-        $adminUser->assignRole('Admin');
-        $employeeUser->assignRole('Employee');
-        $customerUser->assignRole('Customer');
+        $adminUser->assignRole("Admin");
+        $employeeUser->assignRole("Employee");
+        $customerUser->assignRole("Customer");
 
-        $this->command->info('Database seeded with roles and test users');
+        $this->command->info("Database seeded with roles and test users");
     }
 }
