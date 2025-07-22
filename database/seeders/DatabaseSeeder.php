@@ -13,9 +13,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed roles first
         $this->call([
+            CategorySeeder::class,
+            RaritySeeder::class,
+            SetSeeder::class,
             RoleSeeder::class,
+            AdminUserSeeder::class,
         ]);
 
         // Create test users

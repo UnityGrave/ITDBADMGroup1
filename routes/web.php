@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Livewire\Admin\SetsPage;
+use App\Livewire\Admin\RaritiesPage;
+use App\Livewire\Admin\CardsPage;
+use App\Livewire\Admin\ProductsPage;
+
 // Home page route
 Route::view('/', 'welcome')->name('home');
 
@@ -38,19 +43,28 @@ Route::prefix('orders')->middleware('auth')->group(function () {
     })->name('orders.index');
 });
 
-// Admin routes (requires admin or employee role)
-Route::prefix('admin')->middleware(['auth', 'role:Admin,Employee'])->group(function () {
+// Admin routes (consolidated - requires admin or employee role for dashboard, admin-only for CRUD)
+Route::prefix('admin')->middleware('auth')->group(function () {
+    // Admin dashboard (Admin + Employee access)
     Route::get('/dashboard', function () {
         return view('admin.dashboard', [
             'pageTitle' => 'Admin Dashboard',
             'pageDescription' => 'Manage users, orders, and system settings'
         ]);
-    })->name('admin.dashboard');
+    })->middleware('role:Admin,Employee')->name('admin.dashboard');
+    
+    // TCG Management (Admin-only access)
+    Route::middleware('role:Admin')->group(function () {
+        Route::get('/sets', SetsPage::class)->name('admin.sets');
+        Route::get('/rarities', RaritiesPage::class)->name('admin.rarities');
+        Route::get('/cards', CardsPage::class)->name('admin.cards');
+        Route::get('/products', ProductsPage::class)->name('admin.products');
+    });
 });
 
-// Authorization Test Routes
+// Testing & Authorization Routes
 Route::prefix('test')->middleware('auth')->group(function () {
-    // Admin-only routes
+    // Role-based test routes
     Route::get('/admin-only', function () {
         return view('test.authorization', [
             'title' => 'Admin Only Area',
@@ -59,7 +73,6 @@ Route::prefix('test')->middleware('auth')->group(function () {
         ]);
     })->middleware('role:Admin')->name('test.admin');
 
-    // Admin and Employee routes  
     Route::get('/staff-area', function () {
         return view('test.authorization', [
             'title' => 'Staff Area',
@@ -68,7 +81,6 @@ Route::prefix('test')->middleware('auth')->group(function () {
         ]);
     })->middleware('role:Admin,Employee')->name('test.staff');
 
-    // Customer area
     Route::get('/customer-area', function () {
         return view('test.authorization', [
             'title' => 'Customer Area',
@@ -77,7 +89,6 @@ Route::prefix('test')->middleware('auth')->group(function () {
         ]);
     })->middleware('role:Customer')->name('test.customer');
 
-    // Any authenticated user
     Route::get('/authenticated', function () {
         return view('test.authorization', [
             'title' => 'Authenticated Users',

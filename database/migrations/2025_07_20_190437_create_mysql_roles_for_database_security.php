@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
-{
+{ /*
     /**
      * Run the migrations.
      * 
@@ -16,7 +16,7 @@ return new class extends Migration
      * even if the application layer were to be compromised.
      */
     public function up(): void
-    {
+    { /*
         // Create MySQL roles using raw SQL statements as specified in the ticket
         DB::unprepared("
             -- =====================================================================
@@ -108,7 +108,7 @@ return new class extends Migration
         \Log::info('TICKET 2.4: MySQL roles created successfully', [
             'roles_created' => ['konibui_admin', 'konibui_employee', 'konibui_customer'],
             'migration' => 'create_mysql_roles_for_database_security'
-        ]);
+        ]); */
     }
 
     /**
@@ -117,7 +117,7 @@ return new class extends Migration
      * Drop the created MySQL roles as specified in the ticket requirements.
      */
     public function down(): void
-    {
+    { /*
         // Drop the MySQL roles using raw SQL statements
         DB::unprepared("
             -- =====================================================================
@@ -139,6 +139,6 @@ return new class extends Migration
         \Log::info('TICKET 2.4: MySQL roles dropped successfully (rollback)', [
             'roles_dropped' => ['konibui_admin', 'konibui_employee', 'konibui_customer'],
             'migration' => 'create_mysql_roles_for_database_security'
-        ]);
+        ]); */
     }
 };
