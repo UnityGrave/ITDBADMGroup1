@@ -83,6 +83,35 @@
             <!-- Desktop Filters -->
             <aside class="hidden lg:block w-64 shrink-0">
                 <div class="space-y-6 sticky top-4">
+                    <!-- Search Input -->
+                    <div>
+                        <h3 class="font-display font-semibold mb-2">Search</h3>
+                        <div class="relative">
+                            <input
+                                type="text"
+                                wire:model.live.debounce.300ms="search"
+                                placeholder="Search products..."
+                                class="w-full pl-10 pr-4 py-2 text-sm text-brand-gray-900 bg-white border border-brand-gray-200 rounded-lg focus:outline-none focus:border-pokemon-red focus:ring-1 focus:ring-pokemon-red"
+                            >
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-brand-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            @if($search)
+                                <button 
+                                    wire:click="$set('search', null)"
+                                    type="button" 
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                >
+                                    <svg class="h-5 w-5 text-brand-gray-400 hover:text-brand-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+
                     <div>
                         <h3 class="font-display font-semibold mb-2">Category</h3>
                         @foreach ($this->categories as $category)
@@ -116,10 +145,16 @@
                         </select>
                     </div>
 
-                    <div class="pt-4">
-                        <button wire:click="applyFilters"
+                    <div class="pt-4 flex flex-col gap-2">
+                    <button wire:click="applyFilters"
                             class="w-full bg-konbini-orange text-white py-2 rounded-md hover:bg-orange-600 transition font-medium">
                             Apply Filters
+                        </button>
+                        <button 
+                            wire:click="clearAllFilters"
+                            class="w-full bg-orange-600 text-white py-2 rounded-md hover:bg-orange-800 transition font-medium"
+                        >
+                            Clear all filters
                         </button>
                         <div wire:loading class="flex justify-center items-center gap-2 mt-2">
                             <x-loading-spinner size="sm" class="text-pokemon-red" />
@@ -134,6 +169,11 @@
                     <div>
                         <h1 class="text-3xl font-display font-extrabold text-pokemon-black">Shop All Products</h1>
                         <p class="mt-1 text-brand-gray-600">Browse our collection of Pokémon cards</p>
+                        @if($search)
+                            <p class="mt-2 text-sm text-brand-gray-500">
+                                Showing results for "{{ $search }}"
+                            </p>
+                        @endif
                     </div>
                     
                     <div class="flex items-center gap-4 w-full sm:w-auto">
@@ -167,9 +207,23 @@
                             <x-product-card :product="$product" />
                         </a>
                     @empty
-                        <p class="col-span-full text-center py-12 text-brand-gray-500 bg-brand-gray-50 rounded-lg">
-                            No products match your filters.
-                        </p>
+                        <div class="col-span-full text-center py-12 bg-brand-gray-50 rounded-lg">
+                            <p class="text-brand-gray-500">
+                                @if($search)
+                                    No products found for "{{ $search }}"
+                                @else
+                                    No products match your filters
+                                @endif
+                            </p>
+                            @if($search || $selectedCategories || $selectedSets || $selectedRarityId)
+                                <button 
+                                    wire:click="clearAllFilters"
+                                    class="mt-4 text-sm text-pokemon-red hover:text-red-600 font-medium"
+                                >
+                                    Clear all filters
+                                </button>
+                            @endif
+                        </div>
                     @endforelse
                 </div>
 

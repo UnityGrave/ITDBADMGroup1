@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Rarity;
 use Livewire\Attributes\Url;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductListingPage extends Component
 {
@@ -24,6 +25,9 @@ class ProductListingPage extends Component
         'rarityId' => null,
         'sort' => 'created_at_desc',
     ];
+
+    #[Url]
+    public ?string $search = null;
 
     public array $selectedSets = [];
     public array $selectedCategories = [];
@@ -41,12 +45,36 @@ class ProductListingPage extends Component
             }
         }
 
+        // Handle search from URL query parameter
+        $this->search = Request::query('search');
+
         $this->applyFilters();
     }
 
     public function updatedFilters($value, $key)
     {
         $this->applyFilters();
+    }
+
+    public function updatedSearch()
+    {
+        $this->applyFilters();
+    }
+
+    public function clearAllFilters()
+    {
+        $this->search = null;
+        $this->filters = [
+            'sets' => [],
+            'categories' => [],
+            'rarityId' => null,
+            'sort' => 'created_at_desc',
+        ];
+        $this->selectedSets = [];
+        $this->selectedCategories = [];
+        $this->selectedRarityId = null;
+        $this->sort = 'created_at_desc';
+        $this->resetPage();
     }
 
     public function applyFilters()
@@ -60,8 +88,33 @@ class ProductListingPage extends Component
 
     public function getProductsProperty()
     {
-        $query = Product::with(['card.set', 'card.category', 'card.rarity', 'inventory']);
+        // Start with a base query
+        $query = Product::query();
 
+        // If we have a search term, get product IDs from Scout
+        if ($this->search && strlen($this->search) >= 2) {
+            $searchResults = Product::search($this->search)
+                ->get()
+                ->pluck('id')
+                ->toArray();
+
+            if (!empty($searchResults)) {
+                $query->whereIn('id', $searchResults);
+            } else {
+                // Return empty paginator if no search results
+                return new LengthAwarePaginator(
+                    [], // Empty array of items
+                    0,  // Total items
+                    $this->perPage, // Items per page
+                    $this->page ?? 1 // Current page
+                );
+            }
+        }
+
+        // Apply eager loading
+        $query->with(['card.set', 'card.category', 'card.rarity', 'inventory']);
+
+        // Apply filters
         if ($this->selectedSets) {
             $query->whereHas('card.set', fn ($q) => $q->whereIn('id', $this->selectedSets));
         }
@@ -74,6 +127,7 @@ class ProductListingPage extends Component
             $query->whereHas('card.rarity', fn ($q) => $q->where('id', $this->selectedRarityId));
         }
 
+        // Apply sorting
         match ($this->sort) {
             'price_asc' => $query->orderBy('price', 'asc'),
             'price_desc' => $query->orderBy('price', 'desc'),
