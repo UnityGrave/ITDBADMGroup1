@@ -87,10 +87,10 @@
             @if(auth()->user()->hasRole('Admin'))
             <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900">TCG Management (EPIC 3)</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">Product Management</h3>
                     <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">Fully Implemented</span>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <a href="{{ route('admin.sets') }}" class="flex flex-col items-center p-4 bg-yellow-50 border border-yellow-200 rounded hover:bg-yellow-100 transition-colors">
                         <svg class="h-8 w-8 text-yellow-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,7 +99,7 @@
                         <span class="text-sm font-medium text-yellow-800">Manage Sets</span>
                         <span class="text-xs text-yellow-600">{{ \App\Models\Set::count() }} sets</span>
                     </a>
-                    
+
                     <a href="{{ route('admin.rarities') }}" class="flex flex-col items-center p-4 bg-pink-50 border border-pink-200 rounded hover:bg-pink-100 transition-colors">
                         <svg class="h-8 w-8 text-pink-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
@@ -107,7 +107,7 @@
                         <span class="text-sm font-medium text-pink-800">Manage Rarities</span>
                         <span class="text-xs text-pink-600">{{ \App\Models\Rarity::count() }} rarities</span>
                     </a>
-                    
+
                     <a href="{{ route('admin.cards') }}" class="flex flex-col items-center p-4 bg-indigo-50 border border-indigo-200 rounded hover:bg-indigo-100 transition-colors">
                         <svg class="h-8 w-8 text-indigo-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"/>
@@ -115,7 +115,7 @@
                         <span class="text-sm font-medium text-indigo-800">Manage Cards</span>
                         <span class="text-xs text-indigo-600">{{ \App\Models\Card::count() }} cards</span>
                     </a>
-                    
+
                     <a href="{{ route('admin.products') }}" class="flex flex-col items-center p-4 bg-orange-50 border border-orange-200 rounded hover:bg-orange-100 transition-colors">
                         <svg class="h-8 w-8 text-orange-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
@@ -139,7 +139,7 @@
                             </button>
                         @endif
                     </div>
-                    
+
                     <div class="space-y-3">
                         @foreach(App\Models\User::with('roles')->limit(5)->get() as $user)
                             <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
@@ -170,7 +170,7 @@
                 <!-- System Information -->
                 <div class="bg-white border border-gray-200 rounded-lg p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">System Information</h3>
-                    
+
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-600">Laravel Version</span>
@@ -240,4 +240,4 @@
             </div>
         </div>
     </div>
-</x-app-layout> 
+</x-app-layout>
