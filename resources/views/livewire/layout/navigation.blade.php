@@ -19,8 +19,8 @@ new class extends Component {
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
             <div class="flex items-center space-x-6">
-                <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center space-x-2">
-                    <div class="w-6 h-6 bg-pokemon-red rounded"></div>
+                <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center">
+                    <x-application-logo class="w-24 h-24" />
                     <span class="text-lg font-display font-bold text-pokemon-black">{{ config('app.name') }}</span>
                 </a>
 
