@@ -28,7 +28,7 @@ new class extends Component {
                     <div class="relative" x-data="{ dropdownOpen: false }">
                         <button @click="dropdownOpen = !dropdownOpen"
                             class="flex items-center text-brand-gray-700 hover:text-pokemon-red transition">
-                            Products
+                            Categories
                             <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 9l-7 7-7-7" />
@@ -60,6 +60,11 @@ new class extends Component {
                                 </a>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Search Component -->
+                    <div class="w-96">
+                        <livewire:product-search />
                     </div>
 
                     @auth
@@ -120,7 +125,7 @@ new class extends Component {
                         </x-slot>
 
                         <x-slot name="content">
-                            <x-dropdown-link :href="route('profile')" wire:navigate>Profile</x-dropdown-link>
+                            <x-dropdown-link :href="route('profile')" wire:navigate>My Account</x-dropdown-link>
                             <x-dropdown-link :href="route('orders.index')" wire:navigate>Orders</x-dropdown-link>
                             <x-dropdown-link :href="route('test.defense-in-depth')" wire:navigate>Security Tests</x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}">
@@ -139,26 +144,5 @@ new class extends Component {
                 @endauth
             </div>
         </div>
-    </div>
-
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        @auth
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-pokemon-black">{{ auth()->user()->name }}</div>
-                <div class="font-medium text-sm text-brand-gray-500">{{ auth()->user()->email }}</div>
-            </div>
-
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile')" wire:navigate>My Account</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('orders.index')" wire:navigate>Orders</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('test.defense-in-depth')" wire:navigate>Security Tests</x-responsive-nav-link>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">Log Out</x-responsive-nav-link>
-                </form>
-            </div>
-        </div>
-        @endauth
     </div>
 </nav>
