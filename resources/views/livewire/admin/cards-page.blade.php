@@ -1,5 +1,6 @@
 <div class="py-8">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <x-product-management-header />
         <!-- Header -->
         <div class="mb-6">
             <div class="flex justify-between items-center">
@@ -19,36 +20,36 @@
                 <h3 class="text-lg font-medium text-gray-900 mb-4">
                     {{ $editingId ? 'Edit Card' : 'Add New Card' }}
                 </h3>
-                
+
                 <form wire:submit.prevent="{{ $editingId ? 'update' : 'create' }}" class="space-y-4">
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700">Card Name</label>
-                            <input type="text" 
-                                   wire:model.defer="name" 
+                            <input type="text"
+                                   wire:model.defer="name"
                                    id="name"
-                                   placeholder="e.g., Charizard, Pikachu..." 
+                                   placeholder="e.g., Charizard, Pikachu..."
                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-                            @error('name') 
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p> 
+                            @error('name')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                        
+
                         <div>
                             <label for="collector_number" class="block text-sm font-medium text-gray-700">Collector Number</label>
-                            <input type="text" 
-                                   wire:model.defer="collector_number" 
+                            <input type="text"
+                                   wire:model.defer="collector_number"
                                    id="collector_number"
-                                   placeholder="e.g., 006/102" 
+                                   placeholder="e.g., 006/102"
                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-                            @error('collector_number') 
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p> 
+                            @error('collector_number')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                        
+
                         <div>
                             <label for="set_id" class="block text-sm font-medium text-gray-700">Set</label>
-                            <select wire:model.defer="set_id" 
+                            <select wire:model.defer="set_id"
                                     id="set_id"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                                 <option value="">Select a set</option>
@@ -56,14 +57,14 @@
                                     <option value="{{ $set->id }}">{{ $set->name }}</option>
                                 @endforeach
                             </select>
-                            @error('set_id') 
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p> 
+                            @error('set_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                        
+
                         <div>
                             <label for="rarity_id" class="block text-sm font-medium text-gray-700">Rarity</label>
-                            <select wire:model.defer="rarity_id" 
+                            <select wire:model.defer="rarity_id"
                                     id="rarity_id"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                                 <option value="">Select a rarity</option>
@@ -71,14 +72,14 @@
                                     <option value="{{ $rarity->id }}">{{ $rarity->name }}</option>
                                 @endforeach
                             </select>
-                            @error('rarity_id') 
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p> 
+                            @error('rarity_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                        
+
                         <div>
                             <label for="category_id" class="block text-sm font-medium text-gray-700">Category</label>
-                            <select wire:model.defer="category_id" 
+                            <select wire:model.defer="category_id"
                                     id="category_id"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                                 <option value="">Select a category</option>
@@ -86,21 +87,21 @@
                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
                                 @endforeach
                             </select>
-                            @error('category_id') 
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p> 
+                            @error('category_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
-                    
+
                     <div class="flex justify-end space-x-3">
                         @if($editingId)
-                            <button type="button" 
-                                    wire:click="$set('editingId', null)" 
+                            <button type="button"
+                                    wire:click="$set('editingId', null)"
                                     class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 Cancel
                             </button>
                         @endif
-                        <button type="submit" 
+                        <button type="submit"
                                 class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             {{ $editingId ? 'Update Card' : 'Add Card' }}
                         </button>
@@ -113,7 +114,7 @@
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Current Cards</h3>
-                
+
                 @if($cards->count() > 0)
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -146,11 +147,11 @@
                                             {{ $card->category->name ?? 'N/A' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button wire:click="edit({{ $card->id }})" 
+                                            <button wire:click="edit({{ $card->id }})"
                                                     class="text-indigo-600 hover:text-indigo-900 mr-3">
                                                 Edit
                                             </button>
-                                            <button wire:click="delete({{ $card->id }})" 
+                                            <button wire:click="delete({{ $card->id }})"
                                                     onclick="return confirm('Are you sure you want to delete this card?')"
                                                     class="text-red-600 hover:text-red-900">
                                                 Delete
@@ -173,4 +174,4 @@
             </div>
         </div>
     </div>
-</div> 
+</div>

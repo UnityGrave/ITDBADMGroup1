@@ -1,7 +1,6 @@
-@extends('layouts.testing')
-
-@section('content')
-<!-- Orders Table -->
+<x-app-layout>
+<div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8"> 
 <div class="mb-8">
     <div class="flex justify-between items-center mb-6">
         <div>
@@ -278,4 +277,6 @@
         </div>
     </div>
 </div>
-@endsection 
+</div>
+</div>
+</x-app-layout>
