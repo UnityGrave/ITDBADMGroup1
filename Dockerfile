@@ -19,7 +19,12 @@ RUN apt-get update && apt-get install -y \
     libgd-dev \
     jpegoptim optipng pngquant gifsicle \
     vim \
-    nano
+    nano \
+    build-essential
+
+# Install Node.js 18.x and npm
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -52,6 +57,12 @@ RUN chmod -R 775 /var/www/html/bootstrap/cache
 
 # Change current user to www
 USER www
+
+# Install PHP and JS dependencies and build assets
+WORKDIR /var/www/html
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+RUN npm install
+RUN npm run build
 
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000
