@@ -114,8 +114,8 @@ docker-compose exec app composer install
 # Install Node.js dependencies
 npm install
 
-# Build assets
-npm run build
+# Run vite server
+npm run dev
 ```
 
 #### 5. Generate Application Key and Initialize Database
@@ -127,10 +127,6 @@ docker-compose exec app php artisan key:generate
 docker-compose exec app php artisan migrate
 
 # Seed the database with initial data
-docker-compose exec app php artisan db:seed
-
-or
-
 docker-compose exec app php artisan migrate:fresh --seed
 ```
 
