@@ -163,4 +163,9 @@ Route::prefix("test")
         });
     });
 
+// Demo Routes
+Route::get('/cart-demo', function () {
+    return app(\App\Livewire\CartDemo::class)->render();
+})->name('cart.demo');
+
 require __DIR__ . "/auth.php";
