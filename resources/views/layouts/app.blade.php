@@ -28,7 +28,7 @@
 
         <!-- Page Content -->
         <main>
-            {{ $slot }}
+            {!! $slot !!}
         </main>
     </div>
 
@@ -45,5 +45,55 @@
         </div>
         <span class="text-sm font-medium">Loading...</span>
     </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script>
+        // Enhanced toast notification system
+        window.showToast = function(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-green-600 text-white border-green-700',
+                error: 'bg-red-600 text-white border-red-700',
+                info: 'bg-blue-600 text-white border-blue-700',
+                warning: 'bg-yellow-500 text-gray-900 border-yellow-600'
+            };
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️',
+                warning: '⚠️'
+            };
+            
+            toast.className = `${colors[type]} px-4 py-3 rounded-lg shadow-xl border-2 transform transition-all duration-300 translate-x-full opacity-0 max-w-sm min-w-64`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="text-lg flex-shrink-0">${icons[type]}</span>
+                    <span class="text-sm font-medium">${message}</span>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            }, 10);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => {
+                    if (container.contains(toast)) {
+                        container.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        };
+    </script>
 </body>
 </html>

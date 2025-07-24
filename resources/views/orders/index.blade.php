@@ -46,112 +46,71 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    <!-- Sample Order 1 -->
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            #ORD-001
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ now()->subDays(3)->format('M j, Y') }}
-                        </td>
-                        @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ auth()->user()->name }}
+                    @forelse($orders as $order)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                #{{ $order->order_number }}
                             </td>
-                        @endif
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            Sample Product A, Sample Product B
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            $249.98
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                                Delivered
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                            <div class="flex justify-end space-x-2">
-                                <button class="text-blue-600 hover:text-blue-500">View</button>
-                                @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
-                                    <button class="text-gray-600 hover:text-gray-500">Edit Status</button>
-                                @endif
-                                @if(auth()->user()->hasRole('Admin'))
-                                    <button class="text-red-600 hover:text-red-500">Delete</button>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- Sample Order 2 -->
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            #ORD-002
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ now()->subDays(1)->format('M j, Y') }}
-                        </td>
-                        @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ auth()->user()->name }}
+                                {{ $order->created_at->format('M j, Y') }}
                             </td>
-                        @endif
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            Sample Product C
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            $79.99
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                                Processing
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                            <div class="flex justify-end space-x-2">
-                                <button class="text-blue-600 hover:text-blue-500">View</button>
-                                @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
-                                    <button class="text-gray-600 hover:text-gray-500">Edit Status</button>
-                                @endif
-                                <button class="text-orange-600 hover:text-orange-500">Cancel</button>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- Sample Order 3 -->
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            #ORD-003
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ now()->format('M j, Y') }}
-                        </td>
-                        @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
+                            @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $order->user->name }}
+                                </td>
+                            @endif
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                Customer Test
-                            </td>
-                        @endif
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            Sample Product D
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            $199.99
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                                Pending
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                            <div class="flex justify-end space-x-2">
-                                <button class="text-blue-600 hover:text-blue-500">View</button>
-                                @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
-                                    <button class="text-gray-600 hover:text-gray-500">Edit Status</button>
+                                {{ $order->orderItems->pluck('product_name')->take(2)->join(', ') }}
+                                @if($order->orderItems->count() > 2)
+                                    <span class="text-gray-400">+{{ $order->orderItems->count() - 2 }} more</span>
                                 @endif
-                                <button class="text-orange-600 hover:text-orange-500">Cancel</button>
-                            </div>
-                        </td>
-                    </tr>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                ${{ number_format($order->total_amount, 2) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-medium 
+                                    @if($order->status === 'completed') bg-green-100 text-green-800
+                                    @elseif($order->status === 'processing') bg-blue-100 text-blue-800
+                                    @elseif($order->status === 'shipped') bg-purple-100 text-purple-800
+                                    @elseif($order->status === 'cancelled') bg-red-100 text-red-800
+                                    @else bg-yellow-100 text-yellow-800
+                                    @endif
+                                    rounded-full">
+                                    {{ ucfirst($order->status) }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                <div class="flex justify-end space-x-2">
+                                    <a href="{{ route('orders.show', $order) }}" class="text-blue-600 hover:text-blue-500">View</a>
+                                    @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
+                                        <button class="text-gray-600 hover:text-gray-500">Edit Status</button>
+                                    @endif
+                                    @if(auth()->user()->hasRole('Admin'))
+                                        <button class="text-red-600 hover:text-red-500">Delete</button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="{{ auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee') ? '7' : '6' }}" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center">
+                                    <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                    </svg>
+                                    <h3 class="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
+                                    <p class="text-gray-500 mb-4">You haven't placed any orders yet. Start shopping to see your order history here.</p>
+                                    <a href="{{ route('products.index') }}" class="inline-flex items-center px-4 py-2 bg-konbini-green text-white text-sm font-medium rounded-md hover:bg-green-600 transition-colors">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                        </svg>
+                                        Start Shopping
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -170,11 +129,7 @@
             <div class="ml-4">
                 <h3 class="text-sm font-medium text-gray-500">Total Orders</h3>
                 <p class="text-2xl font-bold text-gray-900">
-                    @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
-                        12
-                    @else
-                        3
-                    @endif
+                    {{ $orders->count() }}
                 </p>
             </div>
         </div>
@@ -190,11 +145,7 @@
             <div class="ml-4">
                 <h3 class="text-sm font-medium text-gray-500">Total Spent</h3>
                 <p class="text-2xl font-bold text-gray-900">
-                    @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
-                        $2,847.23
-                    @else
-                        $529.96
-                    @endif
+                    ${{ number_format($orders->sum('total_amount'), 2) }}
                 </p>
             </div>
         </div>

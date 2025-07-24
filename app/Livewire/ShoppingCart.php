@@ -47,6 +47,15 @@ class ShoppingCart extends Component
     }
 
     /**
+     * Listen for add-to-cart events from Blade components (Alpine.js)
+     */
+    #[On('add-to-cart')]
+    public function handleAddToCart($productId, $quantity = 1)
+    {
+        $this->handleProductAdded($productId, $quantity);
+    }
+
+    /**
      * Update quantity of a cart item
      */
     public function updateQuantity($productId, $quantity)
@@ -139,12 +148,8 @@ class ShoppingCart extends Component
             return;
         }
 
-        // TODO: Redirect to checkout page when implemented
-        $this->js("
-            if (typeof window.showToast === 'function') {
-                window.showToast('Checkout functionality coming soon!', 'info');
-            }
-        ");
+        // Redirect to checkout page
+        return redirect()->route('checkout');
     }
 
     public function render()
