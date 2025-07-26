@@ -273,17 +273,32 @@ class CheckoutPage extends Component
             
             return redirect()->route('order.success', ['order' => $order->order_number]);
 
-        } catch (\Exception $e) {
-            // Handle errors - transaction will be automatically rolled back
+        } catch (\App\Exceptions\OrderProcessingException $e) {
+            // Handle known order processing errors
             $this->addError('general', 'There was an error processing your order. Please try again.');
             
             $this->js("
                 if (typeof window.showToast === 'function') {
-                    window.showToast('Order failed: " . addslashes($e->getMessage()) . "', 'error');
+                    window.showToast('Order failed due to a processing error. Please contact support if the issue persists.', 'error');
                 }
             ");
 
-            \Log::error('Order placement failed', [
+            \Log::error('Order processing error', [
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'checkout_data' => $checkoutData,
+            ]);
+        } catch (\Throwable $e) {
+            // Handle unexpected errors
+            $this->addError('general', 'An unexpected error occurred. Please try again later.');
+            
+            $this->js("
+                if (typeof window.showToast === 'function') {
+                    window.showToast('An unexpected error occurred. Please try again later.', 'error');
+                }
+            ");
+
+            \Log::error('Unexpected error during order placement', [
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
                 'checkout_data' => $checkoutData,
