@@ -202,15 +202,11 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                     @forelse ($this->products as $product)
-                        <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden relative group">
-                            <!-- Clickable area for product details -->
-                            <a href="{{ route('products.show', ['product' => $product->sku]) }}" 
-                               class="absolute inset-0 z-0"></a>
-                            
-                            <!-- Product card with cart functionality -->
-                            <div class="relative z-10">
-                                <livewire:product-card :product="$product" :key="'product-listing-'.$product->id" />
-                            </div>
+                        <div
+                            class="relative z-20 cursor-pointer group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+                            @click="window.location='{{ route('products.show', ['product' => $product->sku]) }}'"
+                        >
+                        <x-product-card :product="$product" :key="'product-listing-'.$product->id"/>
                         </div>
                     @empty
                         <div class="col-span-full text-center py-12 bg-brand-gray-50 rounded-lg">

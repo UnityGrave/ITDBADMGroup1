@@ -103,18 +103,18 @@
                                     {{-- Quantity Controls --}}
                                     <div class="flex items-center space-x-2 mt-2">
                                         <button 
-                                            wire:click="updateQuantity({{ $item['product_id'] }}, {{ $item['quantity'] - 1 }})"
-                                            class="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 transition"
+                                        wire:click="updateQuantity({{ $item['product_id'] }}, {{ ($item['quantity'] ?? 1) - 1 }})"
+                                        class="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 transition"
                                         >
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                                             </svg>
                                         </button>
                                         
-                                        <span class="w-8 text-center text-sm font-medium">{{ $item['quantity'] }}</span>
-                                        
+                                        <span class="w-8 text-center text-sm font-medium">{{ $item['quantity'] ?? 1 }}</span>
+
                                         <button 
-                                            wire:click="updateQuantity({{ $item['product_id'] }}, {{ $item['quantity'] + 1 }})"
+                                            wire:click="updateQuantity({{ $item['product_id'] }}, {{ ($item['quantity'] ?? 1) + 1 }})"
                                             class="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 transition"
                                         >
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
