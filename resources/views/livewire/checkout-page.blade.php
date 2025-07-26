@@ -399,7 +399,7 @@
                                                 </svg>
                                             </div>
                                             <div>
-                                                <h4 class="text-sm font-medium text-gray-900">{{ $item['product']['name'] ?? 'Product Name' }}</h4>
+                                                <h4 class="text-sm font-medium text-gray-900">{{ $item['product']['card']['name'] ?? 'Product Name' }}</h4>
                                                 <p class="text-sm text-gray-500">Qty: {{ $item['quantity'] ?? 1 }}</p>
                                             </div>
                                         </div>
