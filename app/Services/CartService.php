@@ -208,7 +208,7 @@ class CartService
      */
     private function getCartItemsFromDatabase(): Collection
     {
-        return CartItem::with('product')
+        return CartItem::with(['product.card'])
             ->where('user_id', Auth::id())
             ->get();
     }
@@ -222,7 +222,7 @@ class CartService
         $cartItems = collect();
 
         foreach ($cart as $productId => $quantity) {
-            $product = Product::find($productId);
+            $product = Product::with('card')->find($productId);
             if ($product) {
                 // Create a temporary cart item object for consistency
                 $cartItem = new CartItem([

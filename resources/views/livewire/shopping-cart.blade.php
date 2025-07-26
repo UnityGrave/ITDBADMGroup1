@@ -94,7 +94,7 @@
                                 {{-- Product Details --}}
                                 <div class="flex-1 min-w-0">
                                     <h4 class="text-sm font-medium text-gray-900 truncate">
-                                        {{ $item['product']['name'] ?? 'Product Name' }}
+                                        {{ $item['product']['card']['name'] ?? 'Product Name' }}
                                     </h4>
                                     <p class="text-sm text-gray-500">
                                         ${{ number_format($item['product']['price'] ?? 0, 2) }}
@@ -103,7 +103,7 @@
                                     {{-- Quantity Controls --}}
                                     <div class="flex items-center space-x-2 mt-2">
                                         <button 
-                                            wire:click="updateQuantity({{ $item['product_id'] }}, {{ ($item['quantity'] ?? 1) - 1 }})"
+                                            wire:click="updateQuantity({{ $item['product_id'] }}, {{ $item['quantity'] - 1 }})"
                                             class="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 transition"
                                         >
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,10 +111,10 @@
                                             </svg>
                                         </button>
                                         
-                                        <span class="w-8 text-center text-sm font-medium">{{ $item['quantity'] ?? 1 }}</span>
+                                        <span class="w-8 text-center text-sm font-medium">{{ $item['quantity'] }}</span>
                                         
                                         <button 
-                                            wire:click="updateQuantity({{ $item['product_id'] }}, {{ ($item['quantity'] ?? 1) + 1 }})"
+                                            wire:click="updateQuantity({{ $item['product_id'] }}, {{ $item['quantity'] + 1 }})"
                                             class="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 transition"
                                         >
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
