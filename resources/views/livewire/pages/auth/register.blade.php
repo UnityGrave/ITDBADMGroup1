@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Services\CartService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -37,6 +38,10 @@ new #[Layout('layouts.guest')] class extends Component
         $user->assignRole('Customer');
 
         Auth::login($user);
+
+        // Migrate session cart to database for newly registered user
+        $cartService = app(CartService::class);
+        $cartService->migrateSessionCartToDatabase();
 
         $this->redirect(route('products.index', absolute: false), navigate: true);
     }

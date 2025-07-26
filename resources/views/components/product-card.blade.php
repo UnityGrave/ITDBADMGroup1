@@ -75,20 +75,21 @@
             <!-- Add to Cart Button -->
             <button
                 x-data="{ caught: false }"
-                x-on:click="
+                @click.stop="
                     $wire.dispatch('add-to-cart', { productId: {{ $product->id }} });
                     caught = true;
                     setTimeout(() => caught = false, 1200);
                 "
                 :disabled="{{ $stock === 0 ? 'true' : 'false' }}"
-                class="w-full bg-konbini-green text-white py-1.5 rounded-md text-sm font-medium 
-                    hover:bg-green-600 text-brand-gray-100 transition-colors duration-200
-                    disabled:bg-brand-gray-200 disabled:text-brand-gray-400 disabled:cursor-not-allowed"
+                class="pointer-events-auto w-full bg-konbini-green text-white py-1.5 rounded-md text-sm font-medium 
+                    hover:bg-green-600 transition-colors duration-200
+                    disabled:bg-brand-gray-200 disabled:text-brand-gray-400 disabled:cursor-not-allowed
+                    relative z-20"
             >
                 <span x-show="!caught">Add to Cart</span>
                 <span x-show="caught" class="flex items-center justify-center gap-1">
                     <span>Caught!</span>
-                    <span class="text-base">✨</span>
+                    <span class="animate-spin"><x-loading-spinner /></span>
                 </span>
             </button>
         </div>

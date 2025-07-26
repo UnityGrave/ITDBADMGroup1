@@ -34,7 +34,7 @@ Route::view("profile/edit", "profile")
 Route::get('/products', function () {
     return view('products.index');
 })->name('products.index');
-Route::get('/products/{product:sku}', [ProductController::class, 'show'])->name('products.show');
+Route::get('/products/{product:sku}', \App\Livewire\ProductDetailPage::class)->name('products.show');
 
 
 
@@ -44,11 +44,37 @@ Route::prefix("orders")
     ->middleware("auth")
     ->group(function () {
         Route::get("/", function () {
+            // Get orders for the current user (or all orders if admin/employee)
+            $query = \App\Models\Order::with(['orderItems.product.card', 'user']);
+            
+            if (auth()->user()->hasRole('Customer')) {
+                // Regular customers only see their own orders
+                $query->where('user_id', auth()->id());
+            }
+            
+            $orders = $query->orderBy('created_at', 'desc')->get();
+            
             return view("orders.index", [
                 "pageTitle" => "My Orders",
                 "pageDescription" => "View your order history and status",
+                "orders" => $orders,
             ]);
         })->name("orders.index");
+        
+        Route::get("/{order}", function (\App\Models\Order $order) {
+            // Ensure customers can only view their own orders
+            if (auth()->user()->hasRole('Customer') && $order->user_id !== auth()->id()) {
+                abort(403, 'Unauthorized');
+            }
+            
+            $order->load(['orderItems.product.card.set', 'orderItems.product.card.rarity', 'user']);
+            
+            return view("orders.show", [
+                "pageTitle" => "Order Details",
+                "pageDescription" => "View order #{$order->order_number}",
+                "order" => $order,
+            ]);
+        })->name("orders.show");
     });
 
 // Admin routes (consolidated - requires admin or employee role for dashboard, admin-only for CRUD)
@@ -162,5 +188,32 @@ Route::prefix("test")
             ])->name("test.defense.status");
         });
     });
+
+// Checkout Routes
+Route::get('/checkout', \App\Livewire\CheckoutPage::class)
+    ->middleware(['auth', 'role:Customer'])
+    ->name('checkout');
+
+Route::get('/order/success/{order}', function ($order) {
+    // Find and validate the order
+    $orderModel = \App\Models\Order::where('order_number', $order)
+        ->where('user_id', auth()->id())
+        ->with(['orderItems.product.card.set', 'orderItems.product.card.rarity', 'user'])
+        ->firstOrFail();
+    
+    // Render the view with explicit data (not using Livewire context)
+    $orderContent = view('livewire.order-success', [
+        'order' => $orderModel
+    ])->render();
+    
+    return view('layouts.app', [
+        'slot' => $orderContent
+    ]);
+})->middleware(['auth', 'role:Customer'])->name('order.success');
+
+// Demo Routes
+Route::get('/cart-demo', function () {
+    return app(\App\Livewire\CartDemo::class)->render();
+})->name('cart.demo');
 
 require __DIR__ . "/auth.php";

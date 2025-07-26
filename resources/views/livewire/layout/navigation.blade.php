@@ -84,21 +84,7 @@ new class extends Component {
             <div class="flex items-center space-x-4">
                 @auth
                     @if(auth()->user()->hasRole('Customer'))
-                        <a href="#"
-                            class="inline-flex items-center bg-pokemon-red hover:bg-red-600 text-white font-medium text-sm px-4 py-2 rounded-lg shadow transition group">
-                            <!-- Trainer's Bag Icon -->
-                            <svg class="h-5 w-5 mr-2 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none">
-                                <!-- Bag Rectangle -->
-                                <rect x="4" y="6" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                                <!-- Handle -->
-                                <path d="M9 6C9 4.34315 10.3431 3 12 3C13.6569 3 15 4.34315 15 6" stroke="currentColor" stroke-width="1.5"/>
-                                <!-- Poké Ball -->
-                                <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="1.5"/>
-                                <path d="M9 13h6" stroke="currentColor" stroke-width="1.5"/>
-                                <circle cx="12" cy="13" r="1" fill="currentColor"/>
-                            </svg>
-                            Cart
-                        </a>
+                        <livewire:shopping-cart />
                     @endif
 
                     <div class="hidden sm:flex items-center space-x-2">
