@@ -13,7 +13,7 @@
  * - Error handling works as expected
  * - Performance benchmarks are met
  * 
- * Run with: php database/test_ticket_7_4_procedures_triggers.php
+ * Run with: php database/test_ticket_7_4_procedures.php
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
