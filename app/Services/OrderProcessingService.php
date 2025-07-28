@@ -39,8 +39,13 @@ class OrderProcessingService
                     throw new Exception('Cannot create order: Cart is empty');
                 }
 
-                // Load necessary relationships to avoid N+1 queries
-                $cartItems->load('product.card.category', 'product.card.set', 'product.card.rarity');
+                // Ensure we have the necessary product relationships loaded
+                // The CartService already loads product.card, so we just need to ensure products are available
+                foreach ($cartItems as $cartItem) {
+                    if (!$cartItem->product) {
+                        throw new Exception('Cart item missing product information');
+                    }
+                }
 
                 // Get the current active currency for this transaction
                 $activeCurrency = Currency::getActiveCurrencyObject();
