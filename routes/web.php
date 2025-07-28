@@ -11,6 +11,7 @@ use App\Livewire\Admin\ProductsPage;
 use App\Livewire\ProductListingPage;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductDetailController;
+use App\Http\Controllers\OrderController;
 
 
 // Home page route
@@ -43,38 +44,18 @@ Route::get('/products/{product:sku}', \App\Livewire\ProductDetailPage::class)->n
 Route::prefix("orders")
     ->middleware("auth")
     ->group(function () {
-        Route::get("/", function () {
-            // Get orders for the current user (or all orders if admin/employee)
-            $query = \App\Models\Order::with(['orderItems.product.card', 'user']);
-            
-            if (auth()->user()->hasRole('Customer')) {
-                // Regular customers only see their own orders
-                $query->where('user_id', auth()->id());
-            }
-            
-            $orders = $query->orderBy('created_at', 'desc')->get();
-            
-            return view("orders.index", [
-                "pageTitle" => "My Orders",
-                "pageDescription" => "View your order history and status",
-                "orders" => $orders,
-            ]);
-        })->name("orders.index");
+        Route::get("/", [OrderController::class, 'index'])->name("orders.index");
+        Route::get("/{order}", [OrderController::class, 'show'])->name("orders.show");
         
-        Route::get("/{order}", function (\App\Models\Order $order) {
-            // Ensure customers can only view their own orders
-            if (auth()->user()->hasRole('Customer') && $order->user_id !== auth()->id()) {
-                abort(403, 'Unauthorized');
-            }
-            
-            $order->load(['orderItems.product.card.set', 'orderItems.product.card.rarity', 'user']);
-            
-            return view("orders.show", [
-                "pageTitle" => "Order Details",
-                "pageDescription" => "View order #{$order->order_number}",
-                "order" => $order,
-            ]);
-        })->name("orders.show");
+        // Admin/Employee routes for order management
+        Route::middleware(['role:Admin,Employee'])->group(function () {
+            Route::post('/update-status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
+        });
+        
+        // Admin-only routes
+        Route::middleware(['role:Admin'])->group(function () {
+            Route::delete('/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
+        });
     });
 
 // Admin routes (consolidated - requires admin or employee role for dashboard, admin-only for CRUD)
@@ -102,6 +83,11 @@ Route::prefix("admin")
             Route::get("/products", ProductsPage::class)->name(
                 "admin.products",
             );
+            
+            // User Management routes
+            Route::post('/users', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
+            Route::put('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');
+            Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('admin.users.destroy');
         });
     });
 
