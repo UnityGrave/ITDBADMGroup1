@@ -247,7 +247,10 @@ class CheckoutPage extends Component
         }
 
         try {
-            // Prepare checkout data
+            // Get USD totals for order processing
+            $usdTotals = $this->getUsdTotals();
+            
+            // Prepare checkout data with USD amounts
             $checkoutData = [
                 'shipping_first_name' => $this->shipping_first_name,
                 'shipping_last_name' => $this->shipping_last_name,
@@ -262,7 +265,7 @@ class CheckoutPage extends Component
                 'payment_method' => $this->payment_method,
                 'special_instructions' => $this->special_instructions,
                 'tax_rate' => $this->taxRate,
-                'shipping_cost' => $this->shippingCost,
+                'shipping_cost' => $usdTotals['shipping'], // Use USD shipping cost
             ];
 
             // Create the order using the service (with database transaction)
@@ -334,6 +337,26 @@ class CheckoutPage extends Component
         if ($this->activeCurrency) {
             $this->currencySymbol = $this->activeCurrency->symbol;
         }
+        
+        // Convert USD shipping cost to active currency
+        $this->updateShippingCost();
+    }
+
+    /**
+     * Update shipping cost based on active currency
+     */
+    private function updateShippingCost()
+    {
+        $baseShippingUsd = 9.99; // Base shipping cost in USD
+        
+        if ($this->activeCurrency && $this->activeCurrency->code !== 'USD') {
+            // Convert USD shipping to active currency
+            $shippingInCents = (int)($baseShippingUsd * 100);
+            $convertedShippingInCents = $this->activeCurrency->convertFromBase($shippingInCents);
+            $this->shippingCost = $convertedShippingInCents / 100;
+        } else {
+            $this->shippingCost = $baseShippingUsd;
+        }
     }
 
     /**
@@ -357,11 +380,53 @@ class CheckoutPage extends Component
     }
 
     /**
+     * Get formatted amount in USD
+     */
+    public function formatUsdAmount($amount): string
+    {
+        return '$' . number_format($amount, 2);
+    }
+
+    /**
      * Get the active currency code
      */
     public function getActiveCurrencyCode(): string
     {
         return $this->activeCurrency ? $this->activeCurrency->code : 'USD';
+    }
+
+    /**
+     * Check if current currency is different from USD
+     */
+    public function isNonUsdCurrency(): bool
+    {
+        return $this->getActiveCurrencyCode() !== 'USD';
+    }
+
+    /**
+     * Calculate totals in USD
+     */
+    public function getUsdTotals(): array
+    {
+        $usdSubtotal = 0;
+        
+        foreach($this->cartItems as $item) {
+            $product = $item['product'];
+            $productModel = \App\Models\Product::find($product['id']);
+            $usdPrice = $productModel->getPriceForCurrency('USD');
+            $usdSubtotal += $usdPrice->getAmountAsDecimal() * $item['quantity'];
+        }
+        
+        $usdTaxAmount = $usdSubtotal * $this->taxRate;
+        $usdShippingCost = 9.99;
+        $usdFinalTotal = $usdSubtotal + $usdTaxAmount + $usdShippingCost;
+        
+        return [
+            'subtotal' => $usdSubtotal,
+            'tax' => $usdTaxAmount,
+            'shipping' => $usdShippingCost,
+            'total' => $usdFinalTotal,
+        ];
     }
 
     /**
@@ -407,6 +472,26 @@ class CheckoutPage extends Component
         $checkStepOrder = $stepOrder[$stepName] ?? 0;
 
         return $checkStepOrder < $currentStepOrder;
+    }
+
+    /**
+     * Listen for currency changes
+     */
+    #[On('currency-changed')]
+    public function handleCurrencyChange($currency)
+    {
+        $this->loadActiveCurrency();
+        $this->calculateTotals();
+    }
+
+    /**
+     * Load the active currency for price formatting
+     */
+    public function loadActiveCurrency()
+    {
+        $this->activeCurrency = Currency::getActiveCurrencyObject();
+        $this->updateShippingCost();
+        $this->calculateTotals();
     }
 
     public function render()

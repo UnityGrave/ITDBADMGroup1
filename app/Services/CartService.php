@@ -91,7 +91,21 @@ class CartService
     public function getTotalPrice(): float
     {
         return $this->getCartItems()->sum(function ($item) {
-            return $item->product->price * $item->quantity;
+            // Use the current active currency price
+            $activeCurrency = \App\Models\Currency::getActiveCurrencyObject();
+            $priceObject = $item->product->getPriceForCurrency($activeCurrency->code ?? 'USD');
+            return $priceObject->getAmountAsDecimal() * $item->quantity;
+        });
+    }
+
+    /**
+     * Get the total price of all items in the cart in USD (base currency).
+     */
+    public function getUsdTotalPrice(): float
+    {
+        return $this->getCartItems()->sum(function ($item) {
+            $usdPrice = $item->product->getPriceForCurrency('USD');
+            return $usdPrice->getAmountAsDecimal() * $item->quantity;
         });
     }
 

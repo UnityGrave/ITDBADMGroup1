@@ -129,8 +129,8 @@ class ProductListingPage extends Component
 
         // Apply sorting
         match ($this->sort) {
-            'price_asc' => $query->orderBy('price', 'asc'),
-            'price_desc' => $query->orderBy('price', 'desc'),
+            'price_asc' => $query->orderBy('products.base_price_cents', 'asc'),
+            'price_desc' => $query->orderBy('products.base_price_cents', 'desc'),
             'name_asc' => $query
                 ->join('cards', 'products.card_id', '=', 'cards.id')
                 ->orderBy('cards.name', 'asc'),

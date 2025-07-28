@@ -18,10 +18,8 @@ return new class extends Migration
             $table->bigInteger('price_in_base_currency')->nullable(false)->change();
         });
 
-        // Add foreign key using schema builder (will skip if already exists)
-        Schema::table('orders', function (Blueprint $table) {
-            $table->foreign('currency_code')->references('code')->on('currencies')->onDelete('restrict');
-        });
+        // Foreign key constraint already exists from previous migration 000021
+        // No need to add it again
     }
 
     public function down(): void

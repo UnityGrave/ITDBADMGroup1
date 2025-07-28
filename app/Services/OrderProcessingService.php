@@ -58,31 +58,27 @@ class OrderProcessingService
                 if (!$baseCurrency) {
                     throw new Exception('No base currency configured');
                 }
+                $usdSubtotal = $this->cartService->getUsdTotalPrice();
+                $usdTaxAmount = $usdSubtotal * ($checkoutData['tax_rate'] ?? 0.08);
+                $usdShippingCost = $checkoutData['shipping_cost'];
+                $usdTotalAmount = $usdSubtotal + $usdTaxAmount + $usdShippingCost;
 
-                // Calculate totals in the active currency
-                $subtotal = $this->cartService->getTotalPrice();
-                $taxAmount = $subtotal * ($checkoutData['tax_rate'] ?? 0.08);
-                $shippingCost = $checkoutData['shipping_cost'] ?? 9.99;
-                $totalAmount = $subtotal + $taxAmount + $shippingCost;
-
-                // Convert total to base currency for financial integrity
                 // Store amounts in cents for precision
-                $totalAmountInCents = (int)($totalAmount * 100);
-                $totalInBaseCurrency = $activeCurrency->convertToBase($totalAmountInCents);
+                $totalAmountInCents = (int)($usdTotalAmount * 100);
 
-                // Create the order with currency information locked in
+                // Create the order with USD amounts (base currency)
                 $order = Order::create([
                     'user_id' => $user->id,
                     'status' => 'pending',
                     'payment_method' => $checkoutData['payment_method'] ?? 'cod',
                     'payment_status' => 'pending',
-                    'subtotal' => $subtotal,
-                    'tax_amount' => $taxAmount,
-                    'shipping_cost' => $shippingCost,
-                    'total_amount' => $totalAmount,
-                    'currency_code' => $activeCurrency->code,
-                    'exchange_rate' => $activeCurrency->exchange_rate,
-                    'total_in_base_currency' => $totalInBaseCurrency,
+                    'subtotal' => $usdSubtotal,
+                    'tax_amount' => $usdTaxAmount,
+                    'shipping_cost' => $usdShippingCost,
+                    'total_amount' => $usdTotalAmount,
+                    'currency_code' => $activeCurrency->code, // For display purposes
+                    'exchange_rate' => $activeCurrency->exchange_rate, // For display conversion
+                    'total_in_base_currency' => $totalAmountInCents, // Same as total since we store USD
                     'shipping_first_name' => $checkoutData['shipping_first_name'],
                     'shipping_last_name' => $checkoutData['shipping_last_name'],
                     'shipping_email' => $checkoutData['shipping_email'],
@@ -96,22 +92,25 @@ class OrderProcessingService
                     'special_instructions' => $checkoutData['special_instructions'] ?? null,
                 ]);
 
-                // Create order items with currency conversion
+                // Create order items with USD pricing (base currency)
                 foreach ($cartItems as $cartItem) {
                     $product = $cartItem->product;
                     
-                    // Convert unit price to base currency for financial integrity
-                    $unitPriceInCents = (int)($product->price * 100);
-                    $priceInBaseCurrency = $activeCurrency->convertToBase($unitPriceInCents);
+                    // Get USD price for the product (base currency)
+                    $usdPrice = $product->getPriceForCurrency('USD');
+                    $usdUnitPrice = $usdPrice->getAmountAsDecimal();
+                    
+                    // Store prices in cents for precision
+                    $priceInBaseCurrency = (int)($usdUnitPrice * 100);
                     
                     OrderItem::create([
                         'order_id' => $order->id,
                         'product_id' => $product->id,
                         'product_name' => $product->card->name ?? 'Unknown Product',
                         'product_sku' => $product->sku,
-                        'unit_price' => $product->price,
+                        'unit_price' => $usdUnitPrice, // Store USD price
                         'quantity' => $cartItem->quantity,
-                        'price_in_base_currency' => $priceInBaseCurrency,
+                        'price_in_base_currency' => $priceInBaseCurrency, // Same as unit_price since USD
                         'product_details' => [
                             'category' => $product->card->category->name ?? null,
                             'condition' => $product->condition->value ?? null,
@@ -130,10 +129,10 @@ class OrderProcessingService
                     'order_id' => $order->id,
                     'order_number' => $order->order_number,
                     'user_id' => $user->id,
-                    'total_amount' => $totalAmount,
-                    'currency_code' => $activeCurrency->code,
+                    'total_amount_usd' => $usdTotalAmount,
+                    'display_currency_code' => $activeCurrency->code,
                     'exchange_rate' => $activeCurrency->exchange_rate,
-                    'total_in_base_currency' => $totalInBaseCurrency,
+                    'total_in_base_currency' => $totalAmountInCents,
                     'item_count' => $cartItems->count(),
                 ]);
 
