@@ -16,7 +16,7 @@
                 <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                <div>
+<div>
                     <h3 class="text-lg font-semibold text-blue-900 mb-2">How to Test</h3>
                     <ul class="space-y-1 text-blue-800">
                         <li>• Click "Add to Bag" or "Quick Add" on any product card</li>
