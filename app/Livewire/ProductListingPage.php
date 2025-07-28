@@ -55,6 +55,20 @@ class ProductListingPage extends Component
         $this->selectedCategories = array_map('intval', array_filter($this->filters['categories'] ?? [], 'is_numeric'));
         $this->selectedRarityId = $this->filters['rarityId'] ? (int) $this->filters['rarityId'] : null;
         $this->sort = $this->filters['sort'] ?? 'created_at_desc';
+        
+        // Warm up caches in background
+        $this->warmCaches();
+    }
+    
+    /**
+     * Warm up frequently used caches
+     */
+    private function warmCaches(): void
+    {
+        // Warm up filter options cache
+        $this->sets;
+        $this->categories;
+        $this->rarities;
     }
 
     public function updatedFilters($value, $key)
@@ -119,76 +133,67 @@ class ProductListingPage extends Component
     public function getProductsProperty()
     {
         try {
-            // Start with a base query
-            $query = Product::query();
+            // Start with a base query using joins for better performance
+            $query = Product::select('products.*')
+                ->join('cards', 'products.card_id', '=', 'cards.id')
+                ->join('sets', 'cards.set_id', '=', 'sets.id')
+                ->join('categories', 'cards.category_id', '=', 'categories.id')
+                ->join('rarities', 'cards.rarity_id', '=', 'rarities.id');
 
-            // If we have a search term, get product IDs from Scout
+            // Apply search with optimized query
             if ($this->search && strlen($this->search) >= 2) {
-                try {
-                    $searchResults = Product::search($this->search)
-                        ->get()
-                        ->pluck('id')
-                        ->toArray();
-
-                    if (!empty($searchResults)) {
-                        $query->whereIn('id', $searchResults);
-                    } else {
-                        // Return empty paginator if no search results
-                        return new LengthAwarePaginator(
-                            [], // Empty array of items
-                            0,  // Total items
-                            $this->perPage, // Items per page
-                            $this->page ?? 1 // Current page
-                        );
-                    }
-                } catch (\Exception $e) {
-                    // If search fails, fall back to basic text search
-                    $query->whereHas('card', function ($q) {
-                        $q->where('name', 'LIKE', '%' . $this->search . '%');
-                    });
-                }
+                $searchTerm = '%' . $this->search . '%';
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->where('cards.name', 'LIKE', $searchTerm)
+                      ->orWhere('sets.name', 'LIKE', $searchTerm)
+                      ->orWhere('categories.name', 'LIKE', $searchTerm)
+                      ->orWhere('rarities.name', 'LIKE', $searchTerm);
+                });
             }
 
-            // Apply eager loading with error handling
-            $query->with(['card.set', 'card.category', 'card.rarity', 'inventory']);
-            
-            // Ensure we only get products that have all required relationships
-            $query->whereHas('card', function ($q) {
-                $q->whereHas('set')
-                  ->whereHas('category')
-                  ->whereHas('rarity');
-            });
-
-            // Apply filters
+            // Apply filters using joins instead of whereHas for better performance
             if (!empty($this->selectedSets)) {
-                $query->whereHas('card.set', fn ($q) => $q->whereIn('id', $this->selectedSets));
+                $query->whereIn('sets.id', $this->selectedSets);
             }
 
             if (!empty($this->selectedCategories)) {
-                $query->whereHas('card.category', fn ($q) => $q->whereIn('id', $this->selectedCategories));
+                $query->whereIn('categories.id', $this->selectedCategories);
             }
 
             if ($this->selectedRarityId) {
-                $query->whereHas('card.rarity', fn ($q) => $q->where('id', $this->selectedRarityId));
+                $query->where('rarities.id', $this->selectedRarityId);
             }
 
-            // Apply sorting
+            // Apply sorting with optimized queries
             match ($this->sort) {
-                'price_asc' => $query->orderBy('base_price_cents', 'asc'),
-                'price_desc' => $query->orderBy('base_price_cents', 'desc'),
-                'name_asc' => $query
-                    ->join('cards', 'products.card_id', '=', 'cards.id')
-                    ->orderBy('cards.name', 'asc'),
-                'set_asc' => $query
-                    ->join('cards', 'products.card_id', '=', 'cards.id')
-                    ->join('sets', 'cards.set_id', '=', 'sets.id')
-                    ->orderBy('sets.name', 'asc'),
+                'price_asc' => $query->orderBy('products.base_price_cents', 'asc'),
+                'price_desc' => $query->orderBy('products.base_price_cents', 'desc'),
+                'name_asc' => $query->orderBy('cards.name', 'asc'),
+                'set_asc' => $query->orderBy('sets.name', 'asc'),
                 default => $query->orderBy('products.created_at', 'desc'),
             };
 
+            // Get paginated results
             $results = $query->paginate($this->perPage);
             
-
+            // Eager load relationships for the paginated results to avoid N+1
+            $results->getCollection()->load([
+                'card.set', 
+                'card.category', 
+                'card.rarity', 
+                'inventory',
+                'baseCurrency'
+            ]);
+            
+            // Performance monitoring (only in debug mode)
+            if (config('app.debug')) {
+                $queryTime = microtime(true) - LARAVEL_START;
+                \Log::info("Product listing query executed in {$queryTime} seconds", [
+                    'total_products' => $results->total(),
+                    'current_page' => $results->currentPage(),
+                    'per_page' => $results->perPage(),
+                ]);
+            }
             
             return $results;
         } catch (\Exception $e) {
@@ -202,9 +207,26 @@ class ProductListingPage extends Component
         }
     }
 
-    public function getSetsProperty() { return Set::orderBy('name')->get(); }
-    public function getCategoriesProperty() { return Category::orderBy('name')->get(); }
-    public function getRaritiesProperty() { return Rarity::orderBy('name')->get(); }
+    public function getSetsProperty() 
+    { 
+        return cache()->remember('sets_list', 3600, function () {
+            return Set::orderBy('name')->get();
+        });
+    }
+    
+    public function getCategoriesProperty() 
+    { 
+        return cache()->remember('categories_list', 3600, function () {
+            return Category::orderBy('name')->get();
+        });
+    }
+    
+    public function getRaritiesProperty() 
+    { 
+        return cache()->remember('rarities_list', 3600, function () {
+            return Rarity::orderBy('name')->get();
+        });
+    }
 
     /**
      * Debug method to check filter state

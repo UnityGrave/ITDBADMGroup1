@@ -183,7 +183,7 @@ class Product extends Model
     /**
      * Get price for currency using hybrid logic (EPIC 8 TICKET 8.3)
      * 
-     * Implements the hybrid pricing model:
+     * Implements the hybrid pricing model with caching:
      * 1. Check for price override for the requested currency
      * 2. If no override, convert base price using exchange rate
      * 3. Return Money object for precise calculations
@@ -196,30 +196,42 @@ class Product extends Model
     {
         $currencyCode = strtoupper($currencyCode);
         
-        // Step 1: Check for price override first
-        $override = ProductPriceOverride::getEffectiveOverride($this->id, $currencyCode);
-        if ($override) {
-            return Money::ofMinor($override->price_cents, $currencyCode);
-        }
-
-        // Step 2: If requesting the same currency as base, return base price
-        if ($currencyCode === $this->base_currency_code) {
-            return Money::ofMinor($this->base_price_cents, $this->base_currency_code);
-        }
-
-        // Step 3: Convert from base currency using exchange rate
-        $targetCurrency = Currency::where('code', $currencyCode)->first();
-        if (!$targetCurrency) {
-            throw new \InvalidArgumentException("Currency {$currencyCode} not found");
-        }
-
-        // Create base price Money object
-        $basePrice = Money::ofMinor($this->base_price_cents, $this->base_currency_code);
+        // Use caching for expensive price calculations
+        $cacheKey = "product_price_calc_{$this->id}_{$currencyCode}";
         
-        // Convert using the exchange rate
-        $convertedPrice = $basePrice->convertTo($currencyCode, $targetCurrency->exchange_rate);
+        // Track cache keys for easy clearing
+        $trackedKeys = cache()->get('price_cache_keys', []);
+        if (!in_array($cacheKey, $trackedKeys)) {
+            $trackedKeys[] = $cacheKey;
+            cache()->put('price_cache_keys', $trackedKeys, 3600);
+        }
         
-        return $convertedPrice;
+        return cache()->remember($cacheKey, 300, function () use ($currencyCode) {
+            // Step 1: Check for price override first
+            $override = ProductPriceOverride::getEffectiveOverride($this->id, $currencyCode);
+            if ($override) {
+                return Money::ofMinor($override->price_cents, $currencyCode);
+            }
+
+            // Step 2: If requesting the same currency as base, return base price
+            if ($currencyCode === $this->base_currency_code) {
+                return Money::ofMinor($this->base_price_cents, $this->base_currency_code);
+            }
+
+            // Step 3: Convert from base currency using exchange rate
+            $targetCurrency = Currency::where('code', $currencyCode)->first();
+            if (!$targetCurrency) {
+                throw new \InvalidArgumentException("Currency {$currencyCode} not found");
+            }
+
+            // Create base price Money object
+            $basePrice = Money::ofMinor($this->base_price_cents, $this->base_currency_code);
+            
+            // Convert using the exchange rate
+            $convertedPrice = $basePrice->convertTo($currencyCode, $targetCurrency->exchange_rate);
+            
+            return $convertedPrice;
+        });
     }
 
     /**

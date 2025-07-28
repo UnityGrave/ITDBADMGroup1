@@ -213,7 +213,7 @@
                             class="relative z-20 cursor-pointer group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
                             @click="window.location='{{ route('products.show', ['product' => $product->sku]) }}'"
                         >
-                        <livewire:product-card :product="$product" :key="'product-listing-'.$product->id"/>
+                        <livewire:product-card :product="$product" :key="'product-listing-'.$product->id" lazy/>
                         </div>
                     @empty
                         <div class="col-span-full text-center py-12 bg-brand-gray-50 rounded-lg">

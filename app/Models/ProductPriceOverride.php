@@ -144,15 +144,19 @@ class ProductPriceOverride extends Model
     }
 
     /**
-     * Get the effective override for a product in a specific currency
+     * Get the effective override for a product in a specific currency with caching
      */
     public static function getEffectiveOverride(int $productId, string $currencyCode): ?self
     {
-        return static::forProduct($productId)
-            ->forCurrency($currencyCode)
-            ->active()
-            ->currentlyEffective()
-            ->first();
+        $cacheKey = "price_override_{$productId}_{$currencyCode}";
+        
+        return cache()->remember($cacheKey, 300, function () use ($productId, $currencyCode) {
+            return static::forProduct($productId)
+                ->forCurrency($currencyCode)
+                ->active()
+                ->currentlyEffective()
+                ->first();
+        });
     }
 
     /**
@@ -166,7 +170,7 @@ class ProductPriceOverride extends Model
         ?Carbon $effectiveUntil = null,
         ?string $notes = null
     ): self {
-        return static::updateOrCreate(
+        $override = static::updateOrCreate(
             [
                 'product_id' => $productId,
                 'currency_code' => $currencyCode,
@@ -179,6 +183,13 @@ class ProductPriceOverride extends Model
                 'notes' => $notes,
             ]
         );
+        
+        // Clear related caches
+        cache()->forget("price_override_{$productId}_{$currencyCode}");
+        cache()->forget("product_price_calc_{$productId}_{$currencyCode}");
+        cache()->forget("product_price_{$productId}_{$currencyCode}");
+        
+        return $override;
     }
 
     /**

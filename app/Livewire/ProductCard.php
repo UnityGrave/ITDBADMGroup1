@@ -65,11 +65,15 @@ class ProductCard extends Component
     }
 
     /**
-     * Get formatted price string for display
+     * Get formatted price string for display with caching
      */
     public function getFormattedPriceProperty(): string
     {
-        return $this->getPriceInCurrency()->format();
+        $cacheKey = "product_price_{$this->product->id}_{$this->currency}";
+        
+        return cache()->remember($cacheKey, 300, function () {
+            return $this->getPriceInCurrency()->format();
+        });
     }
 
     /**

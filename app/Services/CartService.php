@@ -205,26 +205,44 @@ class CartService
     }
 
     /**
-     * Get cart items from database.
+     * Get cart items from database with optimized eager loading.
      */
     private function getCartItemsFromDatabase(): Collection
     {
-        return CartItem::with(['product.card'])
+        return CartItem::with([
+            'product.card.set', 
+            'product.card.category', 
+            'product.card.rarity',
+            'product.baseCurrency'
+        ])
             ->where('user_id', Auth::id())
             ->get();
     }
 
     /**
-     * Get cart items from session.
+     * Get cart items from session with optimized loading.
      */
     private function getCartItemsFromSession(): Collection
     {
         $cart = Session::get(self::SESSION_CART_KEY, []);
+        
+        if (empty($cart)) {
+            return collect();
+        }
+        
+        // Load all products in one query instead of individual queries
+        $productIds = array_keys($cart);
+        $products = Product::with([
+            'card.set', 
+            'card.category', 
+            'card.rarity',
+            'baseCurrency'
+        ])->whereIn('id', $productIds)->get()->keyBy('id');
+        
         $cartItems = collect();
-
         foreach ($cart as $productId => $quantity) {
-            $product = Product::with('card')->find($productId);
-            if ($product) {
+            if (isset($products[$productId])) {
+                $product = $products[$productId];
                 // Create a temporary cart item object for consistency
                 $cartItem = new CartItem([
                     'product_id' => $productId,
