@@ -115,23 +115,7 @@
                             </div>
                         @endif
                         
-                        <!-- Currency Selector -->
-                        @if(config('app.debug'))
-                            <div class="mt-2">
-                                <label class="text-sm text-brand-gray-600">Currency:</label>
-                                <select wire:model.live="currency" class="ml-2 text-sm border-brand-gray-300 rounded">
-                                    <option value="USD">USD ($)</option>
-                                    <option value="EUR">EUR (€)</option>
-                                    <option value="GBP">GBP (£)</option>
-                                    <option value="JPY">JPY (¥)</option>
-                                    <option value="CAD">CAD (C$)</option>
-                                    <option value="AUD">AUD (A$)</option>
-                                    <option value="CHF">CHF</option>
-                                    <option value="SEK">SEK (kr)</option>
-                                    <option value="PHP">PHP (₱)</option>
-                                </select>
-                            </div>
-                        @endif
+
                     </div>
                     
                     @if($product->inventory->stock > 0)

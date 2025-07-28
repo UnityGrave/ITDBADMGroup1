@@ -73,6 +73,15 @@
                                     @endforeach
                                 </select>
                             </div>
+                            
+                            <div class="pt-6">
+                                <button 
+                                    wire:click="clearAllFilters"
+                                    class="w-full bg-orange-600 text-white py-2 rounded-md hover:bg-orange-800 transition font-medium"
+                                >
+                                    Clear all filters
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -100,7 +109,7 @@
                             </div>
                             @if($search)
                                 <button 
-                                    wire:click="$set('search', null)"
+                                    wire:click="clearSearch"
                                     type="button" 
                                     class="absolute inset-y-0 right-0 pr-3 flex items-center"
                                 >
@@ -146,10 +155,6 @@
                     </div>
 
                     <div class="pt-4 flex flex-col gap-2">
-                    <button wire:click="applyFilters"
-                            class="w-full bg-konbini-orange text-white py-2 rounded-md hover:bg-orange-600 transition font-medium">
-                            Apply Filters
-                        </button>
                         <button 
                             wire:click="clearAllFilters"
                             class="w-full bg-orange-600 text-white py-2 rounded-md hover:bg-orange-800 transition font-medium"
@@ -199,6 +204,8 @@
                         </select>
                     </div>
                 </div>
+
+
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                     @forelse ($this->products as $product)

@@ -965,15 +965,15 @@ CREATE TRIGGER tr_products_price_history
 AFTER UPDATE ON products
 FOR EACH ROW
 BEGIN
-    -- Log price changes
-    IF OLD.price != NEW.price THEN
+    -- Log price changes (using base_price_cents instead of price)
+    IF OLD.base_price_cents != NEW.base_price_cents THEN
         INSERT INTO price_history (
             product_id, old_price, new_price, change_amount,
             change_percentage, changed_by, created_at
         ) VALUES (
-            NEW.id, OLD.price, NEW.price, 
-            (NEW.price - OLD.price),
-            ROUND(((NEW.price - OLD.price) / OLD.price) * 100, 2),
+            NEW.id, OLD.base_price_cents / 100.0, NEW.base_price_cents / 100.0, 
+            (NEW.base_price_cents - OLD.base_price_cents) / 100.0,
+            ROUND(((NEW.base_price_cents - OLD.base_price_cents) / OLD.base_price_cents) * 100, 2),
             IFNULL(@current_user_id, 1), NOW()
         );
     END IF;

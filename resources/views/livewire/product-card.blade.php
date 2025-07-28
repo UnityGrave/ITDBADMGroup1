@@ -137,20 +137,5 @@
         </div>
     </div>
     
-    <!-- Currency Selector (for testing - can be removed in production) -->
-    @if(config('app.debug'))
-        <div class="px-3 pb-2">
-            <select wire:model.live="currency" class="w-full text-xs border-brand-gray-300 rounded">
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-                <option value="JPY">JPY (¥)</option>
-                <option value="CAD">CAD (C$)</option>
-                <option value="AUD">AUD (A$)</option>
-                <option value="CHF">CHF</option>
-                <option value="SEK">SEK (kr)</option>
-                <option value="PHP">PHP (₱)</option>
-            </select>
-        </div>
-    @endif
+
 </div> 
