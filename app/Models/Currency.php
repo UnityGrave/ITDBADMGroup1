@@ -157,4 +157,58 @@ class Currency extends Model
             'rate_updated_at' => now(),
         ]);
     }
+
+    /**
+     * Get the active currency for the current user/session
+     * Priority: authenticated user preference > session > default
+     */
+    public static function getActiveCurrency(): string
+    {
+        // If user is authenticated, check their preference first
+        if (auth()->check()) {
+            $user = auth()->user();
+            if ($user->hasPreferredCurrency()) {
+                return $user->getPreferredCurrencyCode();
+            }
+        }
+
+        // Then check session
+        if (session()->has('currency')) {
+            return session('currency');
+        }
+
+        // Finally, fall back to default
+        return config('currency.base_currency', 'USD');
+    }
+
+    /**
+     * Get the active currency object
+     */
+    public static function getActiveCurrencyObject(): ?Currency
+    {
+        $currencyCode = static::getActiveCurrency();
+        return static::where('code', $currencyCode)->first();
+    }
+
+    /**
+     * Set the active currency for the current user/session
+     */
+    public static function setActiveCurrency(string $currencyCode): void
+    {
+        $currencyCode = strtoupper($currencyCode);
+        
+        // Validate currency exists and is active
+        $currency = static::where('code', $currencyCode)->active()->first();
+        if (!$currency) {
+            throw new \InvalidArgumentException("Invalid or inactive currency: {$currencyCode}");
+        }
+
+        // Store in session for all users
+        session(['currency' => $currencyCode]);
+
+        // If user is authenticated, also update their preference
+        if (auth()->check()) {
+            auth()->user()->setPreferredCurrency($currencyCode);
+        }
+    }
 } 

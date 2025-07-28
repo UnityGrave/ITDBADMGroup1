@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 use App\Enums\ProductCondition;
+use App\ValueObjects\Money;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -177,6 +178,48 @@ class Product extends Model
         $currency = Currency::where('code', $currencyCode)->first();
         
         return $currency->formatAmount($priceInCents);
+    }
+
+    /**
+     * Get price for currency using hybrid logic (EPIC 8 TICKET 8.3)
+     * 
+     * Implements the hybrid pricing model:
+     * 1. Check for price override for the requested currency
+     * 2. If no override, convert base price using exchange rate
+     * 3. Return Money object for precise calculations
+     * 
+     * @param string $currencyCode ISO 4217 currency code
+     * @return Money
+     * @throws \InvalidArgumentException if currency is not found
+     */
+    public function getPriceForCurrency(string $currencyCode): Money
+    {
+        $currencyCode = strtoupper($currencyCode);
+        
+        // Step 1: Check for price override first
+        $override = ProductPriceOverride::getEffectiveOverride($this->id, $currencyCode);
+        if ($override) {
+            return Money::ofMinor($override->price_cents, $currencyCode);
+        }
+
+        // Step 2: If requesting the same currency as base, return base price
+        if ($currencyCode === $this->base_currency_code) {
+            return Money::ofMinor($this->base_price_cents, $this->base_currency_code);
+        }
+
+        // Step 3: Convert from base currency using exchange rate
+        $targetCurrency = Currency::where('code', $currencyCode)->first();
+        if (!$targetCurrency) {
+            throw new \InvalidArgumentException("Currency {$currencyCode} not found");
+        }
+
+        // Create base price Money object
+        $basePrice = Money::ofMinor($this->base_price_cents, $this->base_currency_code);
+        
+        // Convert using the exchange rate
+        $convertedPrice = $basePrice->convertTo($currencyCode, $targetCurrency->exchange_rate);
+        
+        return $convertedPrice;
     }
 
     /**

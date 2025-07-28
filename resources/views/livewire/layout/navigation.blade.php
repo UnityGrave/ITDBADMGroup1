@@ -82,6 +82,9 @@ new class extends Component {
             </div>
 
             <div class="flex items-center space-x-4">
+                <!-- Currency Switcher -->
+                <livewire:currency-switcher />
+                
                 @auth
                     @if(auth()->user()->hasRole('Customer'))
                         <livewire:shopping-cart />

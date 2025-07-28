@@ -91,9 +91,45 @@
 
                 <!-- Price and Add to Cart -->
                 <div class="border-t border-brand-gray-100 pt-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-brand-gray-600">Price</span>
-                        <span class="text-2xl font-display font-bold text-pokemon-black">${{ number_format($product->price, 2) }}</span>
+                    @php
+                        // Get price in selected currency using hybrid logic
+                        $priceObject = $this->getPriceInCurrency();
+                        $formattedPrice = $priceObject->format();
+                        $totalPrice = $priceObject->multipliedBy($quantity);
+                    @endphp
+                    
+                    <div class="mb-4">
+                        <!-- Current currency price -->
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-brand-gray-600">Price</span>
+                            <span class="text-2xl font-display font-bold text-pokemon-black">{{ $formattedPrice }}</span>
+                        </div>
+                        
+                        <!-- Base currency price (if different) -->
+                        @if($currency !== $product->base_currency_code)
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-brand-gray-500">Base Price</span>
+                                <span class="text-brand-gray-500">{{ $product->base_currency_code }} {{ $product->getFormattedBasePriceAttribute() }}</span>
+                            </div>
+                        @endif
+                        
+                        <!-- Currency Selector -->
+                        @if(config('app.debug'))
+                            <div class="mt-2">
+                                <label class="text-sm text-brand-gray-600">Currency:</label>
+                                <select wire:model.live="currency" class="ml-2 text-sm border-brand-gray-300 rounded">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="JPY">JPY (¥)</option>
+                                    <option value="CAD">CAD (C$)</option>
+                                    <option value="AUD">AUD (A$)</option>
+                                    <option value="CHF">CHF</option>
+                                    <option value="SEK">SEK (kr)</option>
+                                    <option value="PHP">PHP (₱)</option>
+                                </select>
+                            </div>
+                        @endif
                     </div>
                     
                     @if($product->inventory->stock > 0)
@@ -128,7 +164,7 @@
                                 </button>
                             </div>
                             <span class="text-sm text-brand-gray-500">
-                                Total: ${{ number_format($product->price * $quantity, 2) }}
+                                Total: {{ $totalPrice->format() }}
                             </span>
                         </div>
                     @endif
