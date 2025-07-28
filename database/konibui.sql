@@ -384,6 +384,12 @@ CREATE TABLE IF NOT EXISTS `inventory_adjustments` (
     FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`)
 );
 
+-- Archived inventory adjustments
+CREATE TABLE IF NOT EXISTS `archived_inventory_adjustments` LIKE `inventory_adjustments`;
+ALTER TABLE `archived_inventory_adjustments` 
+    ADD COLUMN `archived_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ADD INDEX `idx_archived_date` (`archived_at`);
+
 -- =============================================================================
 -- 8. STORED PROCEDURES
 -- =============================================================================
@@ -861,6 +867,7 @@ BEGIN
     
     START TRANSACTION;
     
+    -- First, archive the main orders
     INSERT INTO archived_orders 
     SELECT *, NOW() as archived_at 
     FROM orders 
@@ -869,6 +876,7 @@ BEGIN
     
     SET p_archived_count = ROW_COUNT();
     
+    -- Archive order items
     INSERT INTO archived_order_items
     SELECT oi.*, NOW() as archived_at
     FROM order_items oi
@@ -876,11 +884,29 @@ BEGIN
     WHERE o.status IN ('delivered', 'cancelled', 'refunded')
     AND o.created_at < DATE_SUB(NOW(), INTERVAL p_days_old DAY);
     
+    -- Archive inventory adjustments (if any exist for these orders)
+    INSERT INTO archived_inventory_adjustments
+    SELECT ia.*, NOW() as archived_at
+    FROM inventory_adjustments ia
+    JOIN orders o ON ia.order_id = o.id
+    WHERE o.status IN ('delivered', 'cancelled', 'refunded')
+    AND o.created_at < DATE_SUB(NOW(), INTERVAL p_days_old DAY);
+    
+    -- Now delete in proper order (children first, then parents)
+    
+    -- Delete inventory adjustments first (they reference orders)
+    DELETE ia FROM inventory_adjustments ia
+    JOIN orders o ON ia.order_id = o.id
+    WHERE o.status IN ('delivered', 'cancelled', 'refunded')
+    AND o.created_at < DATE_SUB(NOW(), INTERVAL p_days_old DAY);
+    
+    -- Delete order items
     DELETE oi FROM order_items oi
     JOIN orders o ON oi.order_id = o.id
     WHERE o.status IN ('delivered', 'cancelled', 'refunded')
     AND o.created_at < DATE_SUB(NOW(), INTERVAL p_days_old DAY);
     
+    -- Finally delete orders (no more FK references)
     DELETE FROM orders 
     WHERE status IN ('delivered', 'cancelled', 'refunded')
     AND created_at < DATE_SUB(NOW(), INTERVAL p_days_old DAY);
