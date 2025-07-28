@@ -19,6 +19,9 @@ class Order extends Model
         'tax_amount',
         'shipping_cost',
         'total_amount',
+        'currency_code',
+        'exchange_rate',
+        'total_in_base_currency',
         'shipping_first_name',
         'shipping_last_name',
         'shipping_email',
@@ -40,6 +43,8 @@ class Order extends Model
         'tax_amount' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
         'total_amount' => 'decimal:2',
+        'exchange_rate' => 'decimal:8',
+        'total_in_base_currency' => 'integer',
         'shipped_at' => 'datetime',
         'delivered_at' => 'datetime',
     ];
@@ -84,6 +89,14 @@ class Order extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Get the currency for this order.
+     */
+    public function currency(): BelongsTo
+    {
+        return $this->belongsTo(Currency::class, 'currency_code', 'code');
     }
 
     /**
@@ -156,5 +169,61 @@ class Order extends Model
     public function scopeRecent($query, int $days = 30)
     {
         return $query->where('created_at', '>=', now()->subDays($days));
+    }
+
+    /**
+     * Get formatted total amount in the order's currency
+     */
+    public function getFormattedTotalAttribute(): string
+    {
+        if ($this->currency) {
+            return $this->currency->formatAmount((int)($this->total_amount * 100));
+        }
+        return '$' . number_format($this->total_amount, 2);
+    }
+
+    /**
+     * Get formatted subtotal in the order's currency
+     */
+    public function getFormattedSubtotalAttribute(): string
+    {
+        if ($this->currency) {
+            return $this->currency->formatAmount((int)($this->subtotal * 100));
+        }
+        return '$' . number_format($this->subtotal, 2);
+    }
+
+    /**
+     * Get formatted tax amount in the order's currency
+     */
+    public function getFormattedTaxAmountAttribute(): string
+    {
+        if ($this->currency) {
+            return $this->currency->formatAmount((int)($this->tax_amount * 100));
+        }
+        return '$' . number_format($this->tax_amount, 2);
+    }
+
+    /**
+     * Get formatted shipping cost in the order's currency
+     */
+    public function getFormattedShippingCostAttribute(): string
+    {
+        if ($this->currency) {
+            return $this->currency->formatAmount((int)($this->shipping_cost * 100));
+        }
+        return '$' . number_format($this->shipping_cost, 2);
+    }
+
+    /**
+     * Get formatted total in base currency for reporting
+     */
+    public function getFormattedBaseTotalAttribute(): string
+    {
+        $baseCurrency = Currency::getBaseCurrency();
+        if ($baseCurrency) {
+            return $baseCurrency->formatAmount($this->total_in_base_currency);
+        }
+        return '$' . number_format($this->total_in_base_currency / 100, 2);
     }
 }

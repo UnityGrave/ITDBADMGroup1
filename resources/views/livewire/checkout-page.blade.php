@@ -404,7 +404,7 @@
                                             </div>
                                         </div>
                                         <p class="text-sm font-medium text-gray-900">
-                                            ${{ number_format(($item['product']['price'] ?? 0) * ($item['quantity'] ?? 1), 2) }}
+                                            {{ $this->formatAmount(($item['product']['price'] ?? 0) * ($item['quantity'] ?? 1)) }}
                                         </p>
                                     </div>
                                 @endforeach
@@ -452,20 +452,23 @@
                             <div class="bg-gray-50 rounded-lg p-4 space-y-2">
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-600">Subtotal</span>
-                                    <span class="text-gray-900">${{ number_format($cartTotal, 2) }}</span>
+                                    <span class="text-gray-900">{{ $this->formatAmount($cartTotal) }}</span>
                                 </div>
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-600">Shipping</span>
-                                    <span class="text-gray-900">${{ number_format($shippingCost, 2) }}</span>
+                                    <span class="text-gray-900">{{ $this->formatAmount($shippingCost) }}</span>
                                 </div>
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-600">Tax ({{ $taxRate * 100 }}%)</span>
-                                    <span class="text-gray-900">${{ number_format($taxAmount, 2) }}</span>
+                                    <span class="text-gray-900">{{ $this->formatAmount($taxAmount) }}</span>
                                 </div>
                                 <div class="border-t border-gray-200 pt-2">
                                     <div class="flex justify-between text-lg font-semibold">
                                         <span class="text-gray-900">Total</span>
-                                        <span class="text-pokemon-red">${{ number_format($finalTotal, 2) }}</span>
+                                        <span class="text-pokemon-red">{{ $this->formatAmount($finalTotal) }}</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1 text-right">
+                                        Currency: {{ $this->getActiveCurrencyCode() }}
                                     </div>
                                 </div>
                             </div>
@@ -506,25 +509,29 @@
             <div class="space-y-2">
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-600">{{ $cartCount }} item{{ $cartCount !== 1 ? 's' : '' }}</span>
-                    <span class="text-gray-900">${{ number_format($cartTotal, 2) }}</span>
+                    <span class="text-gray-900">{{ $this->formatAmount($cartTotal) }}</span>
                 </div>
                 @if($this->step === 'review')
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-600">Shipping</span>
-                        <span class="text-gray-900">${{ number_format($shippingCost, 2) }}</span>
+                        <span class="text-gray-900">{{ $this->formatAmount($shippingCost) }}</span>
                     </div>
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-600">Tax</span>
-                        <span class="text-gray-900">${{ number_format($taxAmount, 2) }}</span>
+                        <span class="text-gray-900">{{ $this->formatAmount($taxAmount) }}</span>
                     </div>
                     <div class="border-t border-gray-200 pt-2">
                         <div class="flex justify-between font-semibold">
                             <span class="text-gray-900">Total</span>
-                            <span class="text-pokemon-red">${{ number_format($finalTotal, 2) }}</span>
+                            <span class="text-pokemon-red">{{ $this->formatAmount($finalTotal) }}</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1 text-right">
+                            {{ $this->getActiveCurrencyCode() }}
                         </div>
                     </div>
                 @else
                     <p class="text-xs text-gray-500 mt-2">Shipping and tax calculated at checkout</p>
+                    <p class="text-xs text-gray-500">Currency: {{ $this->getActiveCurrencyCode() }}</p>
                 @endif
             </div>
         </div>

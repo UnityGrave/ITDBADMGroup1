@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Services\CartService;
 use App\Services\OrderProcessingService;
+use App\Models\Currency;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
@@ -21,6 +22,10 @@ class CheckoutPage extends Component
     public $taxRate = 0.08; // 8% tax
     public $taxAmount = 0.00;
     public $finalTotal = 0.00;
+    
+    // Currency data
+    public $activeCurrency = null;
+    public $currencySymbol = '$';
 
     // Shipping information (using defer for performance)
     public string $shipping_first_name = '';
@@ -54,6 +59,9 @@ class CheckoutPage extends Component
             return redirect()->route('login');
         }
 
+        // Load currency information
+        $this->loadCurrencyData();
+        
         // Load cart data
         $this->refreshCart();
 
@@ -318,12 +326,62 @@ class CheckoutPage extends Component
     }
 
     /**
+     * Load currency data for the checkout
+     */
+    private function loadCurrencyData()
+    {
+        $this->activeCurrency = Currency::getActiveCurrencyObject();
+        if ($this->activeCurrency) {
+            $this->currencySymbol = $this->activeCurrency->symbol;
+        }
+    }
+
+    /**
      * Calculate totals including tax and shipping
      */
     private function calculateTotals()
     {
         $this->taxAmount = $this->cartTotal * $this->taxRate;
         $this->finalTotal = $this->cartTotal + $this->shippingCost + $this->taxAmount;
+    }
+
+    /**
+     * Get formatted amount in active currency
+     */
+    public function formatAmount($amount): string
+    {
+        if ($this->activeCurrency) {
+            return $this->activeCurrency->formatAmount((int)($amount * 100));
+        }
+        return '$' . number_format($amount, 2);
+    }
+
+    /**
+     * Get the active currency code
+     */
+    public function getActiveCurrencyCode(): string
+    {
+        return $this->activeCurrency ? $this->activeCurrency->code : 'USD';
+    }
+
+    /**
+     * Get currency display information for the UI
+     */
+    public function getCurrencyDisplayInfo(): array
+    {
+        if (!$this->activeCurrency) {
+            return [
+                'code' => 'USD',
+                'symbol' => '$',
+                'name' => 'US Dollar'
+            ];
+        }
+
+        return [
+            'code' => $this->activeCurrency->code,
+            'symbol' => $this->activeCurrency->symbol,
+            'name' => $this->activeCurrency->name
+        ];
     }
 
     /**

@@ -15,6 +15,7 @@ class OrderItem extends Model
         'unit_price',
         'quantity',
         'total_price',
+        'price_in_base_currency',
         'product_details',
     ];
 
@@ -22,6 +23,7 @@ class OrderItem extends Model
         'unit_price' => 'decimal:2',
         'total_price' => 'decimal:2',
         'quantity' => 'integer',
+        'price_in_base_currency' => 'integer',
         'product_details' => 'array',
     ];
 
@@ -66,6 +68,40 @@ class OrderItem extends Model
      */
     public function getFormattedTotalPriceAttribute(): string
     {
+        if ($this->order && $this->order->currency) {
+            return $this->order->currency->formatAmount((int)($this->total_price * 100));
+        }
         return '$' . number_format($this->total_price, 2);
+    }
+
+    /**
+     * Get the formatted unit price in order currency
+     */
+    public function getFormattedUnitPriceInOrderCurrencyAttribute(): string
+    {
+        if ($this->order && $this->order->currency) {
+            return $this->order->currency->formatAmount((int)($this->unit_price * 100));
+        }
+        return '$' . number_format($this->unit_price, 2);
+    }
+
+    /**
+     * Get the formatted price in base currency for reporting
+     */
+    public function getFormattedBasePriceAttribute(): string
+    {
+        $baseCurrency = \App\Models\Currency::getBaseCurrency();
+        if ($baseCurrency) {
+            return $baseCurrency->formatAmount($this->price_in_base_currency);
+        }
+        return '$' . number_format($this->price_in_base_currency / 100, 2);
+    }
+
+    /**
+     * Get the total price in base currency
+     */
+    public function getTotalPriceInBaseCurrencyAttribute(): int
+    {
+        return $this->price_in_base_currency * $this->quantity;
     }
 }

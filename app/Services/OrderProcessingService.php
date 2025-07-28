@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
+use App\Models\Currency;
 use App\Services\CartService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -41,13 +42,30 @@ class OrderProcessingService
                 // Load necessary relationships to avoid N+1 queries
                 $cartItems->load('product.card.category', 'product.card.set', 'product.card.rarity');
 
-                // Calculate totals
+                // Get the current active currency for this transaction
+                $activeCurrency = Currency::getActiveCurrencyObject();
+                if (!$activeCurrency) {
+                    throw new Exception('No active currency found for transaction');
+                }
+
+                // Get the base currency for conversion calculations
+                $baseCurrency = Currency::getBaseCurrency();
+                if (!$baseCurrency) {
+                    throw new Exception('No base currency configured');
+                }
+
+                // Calculate totals in the active currency
                 $subtotal = $this->cartService->getTotalPrice();
                 $taxAmount = $subtotal * ($checkoutData['tax_rate'] ?? 0.08);
                 $shippingCost = $checkoutData['shipping_cost'] ?? 9.99;
                 $totalAmount = $subtotal + $taxAmount + $shippingCost;
 
-                // Create the order
+                // Convert total to base currency for financial integrity
+                // Store amounts in cents for precision
+                $totalAmountInCents = (int)($totalAmount * 100);
+                $totalInBaseCurrency = $activeCurrency->convertToBase($totalAmountInCents);
+
+                // Create the order with currency information locked in
                 $order = Order::create([
                     'user_id' => $user->id,
                     'status' => 'pending',
@@ -57,6 +75,9 @@ class OrderProcessingService
                     'tax_amount' => $taxAmount,
                     'shipping_cost' => $shippingCost,
                     'total_amount' => $totalAmount,
+                    'currency_code' => $activeCurrency->code,
+                    'exchange_rate' => $activeCurrency->exchange_rate,
+                    'total_in_base_currency' => $totalInBaseCurrency,
                     'shipping_first_name' => $checkoutData['shipping_first_name'],
                     'shipping_last_name' => $checkoutData['shipping_last_name'],
                     'shipping_email' => $checkoutData['shipping_email'],
@@ -70,9 +91,13 @@ class OrderProcessingService
                     'special_instructions' => $checkoutData['special_instructions'] ?? null,
                 ]);
 
-                // Create order items
+                // Create order items with currency conversion
                 foreach ($cartItems as $cartItem) {
                     $product = $cartItem->product;
+                    
+                    // Convert unit price to base currency for financial integrity
+                    $unitPriceInCents = (int)($product->price * 100);
+                    $priceInBaseCurrency = $activeCurrency->convertToBase($unitPriceInCents);
                     
                     OrderItem::create([
                         'order_id' => $order->id,
@@ -81,6 +106,7 @@ class OrderProcessingService
                         'product_sku' => $product->sku,
                         'unit_price' => $product->price,
                         'quantity' => $cartItem->quantity,
+                        'price_in_base_currency' => $priceInBaseCurrency,
                         'product_details' => [
                             'category' => $product->card->category->name ?? null,
                             'condition' => $product->condition->value ?? null,
@@ -94,12 +120,15 @@ class OrderProcessingService
                 // Clear the user's cart
                 $this->cartService->clear();
 
-                // Log successful order creation
+                // Log successful order creation with currency information
                 Log::info('Order created successfully', [
                     'order_id' => $order->id,
                     'order_number' => $order->order_number,
                     'user_id' => $user->id,
                     'total_amount' => $totalAmount,
+                    'currency_code' => $activeCurrency->code,
+                    'exchange_rate' => $activeCurrency->exchange_rate,
+                    'total_in_base_currency' => $totalInBaseCurrency,
                     'item_count' => $cartItems->count(),
                 ]);
 
@@ -241,4 +270,4 @@ class OrderProcessingService
 
         return true;
     }
-} 
+}

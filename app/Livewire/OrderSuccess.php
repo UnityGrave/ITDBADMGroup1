@@ -16,7 +16,7 @@ class OrderSuccess extends Component
         // Find order by order number
         $this->order = Order::where('order_number', $order)
             ->where('user_id', Auth::id())
-            ->with(['orderItems.product', 'user'])
+            ->with(['orderItems.product', 'user', 'currency'])
             ->firstOrFail();
             
         $this->orderNumber = $this->order->order_number;
