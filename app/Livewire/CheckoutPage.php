@@ -320,7 +320,17 @@ class CheckoutPage extends Component
     private function refreshCart()
     {
         $items = $this->cartService->getCartItems();
-        $this->cartItems = $items->toArray();
+        
+        // Convert to array but ensure product is a model object
+        $this->cartItems = $items->map(function ($item) {
+            $itemArray = $item->toArray();
+            // Ensure product is a model object, not an array
+            if (isset($itemArray['product']) && is_array($itemArray['product'])) {
+                $itemArray['product'] = $item->product;
+            }
+            return $itemArray;
+        })->toArray();
+        
         $this->cartCount = $this->cartService->getItemCount();
         $this->cartTotal = $this->cartService->getTotalPrice();
     }
