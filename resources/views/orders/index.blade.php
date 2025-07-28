@@ -47,14 +47,14 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($orders as $order)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                 #{{ $order->order_number }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $order->created_at->format('M j, Y') }}
-                            </td>
-                            @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
+                        </td>
+                        @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $order->user->name }}
                                 </td>
@@ -64,11 +64,11 @@
                                 @if($order->orderItems->count() > 2)
                                     <span class="text-gray-400">+{{ $order->orderItems->count() - 2 }} more</span>
                                 @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                 ${{ number_format($order->total_amount, 2) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 py-1 text-xs font-medium 
                                     @if($order->status === 'completed') bg-green-100 text-green-800
                                     @elseif($order->status === 'processing') bg-blue-100 text-blue-800
@@ -78,20 +78,20 @@
                                     @endif
                                     rounded-full">
                                     {{ ucfirst($order->status) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                <div class="flex justify-end space-x-2">
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                            <div class="flex justify-end space-x-2">
                                     <a href="{{ route('orders.show', $order) }}" class="text-blue-600 hover:text-blue-500">View</a>
-                                    @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
-                                        <button class="text-gray-600 hover:text-gray-500">Edit Status</button>
-                                    @endif
-                                    @if(auth()->user()->hasRole('Admin'))
-                                        <button class="text-red-600 hover:text-red-500">Delete</button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
+                                @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
+                                    <button class="text-gray-600 hover:text-gray-500">Edit Status</button>
+                                @endif
+                                @if(auth()->user()->hasRole('Admin'))
+                                    <button class="text-red-600 hover:text-red-500">Delete</button>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
                     @empty
                         <tr>
                             <td colspan="{{ auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee') ? '7' : '6' }}" class="px-6 py-12 text-center">
@@ -107,9 +107,9 @@
                                         </svg>
                                         Start Shopping
                                     </a>
-                                </div>
-                            </td>
-                        </tr>
+                            </div>
+                        </td>
+                    </tr>
                     @endforelse
                 </tbody>
             </table>
