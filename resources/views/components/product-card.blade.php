@@ -54,7 +54,7 @@
             
             <div class="flex items-center justify-between gap-2">
                 <span class="font-display font-bold text-pokemon-black">
-                    ${{ number_format($product->price, 2) }}
+                    {{ $product->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }}
                 </span>
                 <span class="text-xs px-1.5 py-0.5 rounded-full whitespace-nowrap
                     @if($stock === 0) bg-red-100 text-red-700

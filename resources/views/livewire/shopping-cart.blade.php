@@ -96,9 +96,7 @@
                                     <h4 class="text-sm font-medium text-gray-900 truncate">
                                         {{ $item['product']['card']['name'] ?? 'Product Name' }}
                                     </h4>
-                                    <p class="text-sm text-gray-500">
-                                        ${{ number_format($item['product']['price'] ?? 0, 2) }}
-                                    </p>
+                                    <p class="text-sm text-gray-500">{{ $item['product']->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }}</p>
                                     
                                     {{-- Quantity Controls --}}
                                     <div class="flex items-center space-x-2 mt-2">

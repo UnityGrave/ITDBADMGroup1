@@ -58,7 +58,7 @@
                 <!-- Multi-currency price display -->
                 <div class="flex flex-col">
                     <span class="font-display font-bold text-pokemon-black">
-                        {{ $formattedPrice }}
+                        {{ $product->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }}
                     </span>
                     @if($currency !== $product->base_currency_code)
                         <span class="text-xs text-brand-gray-500">

@@ -102,7 +102,9 @@
                         <!-- Current currency price -->
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-brand-gray-600">Price</span>
-                            <span class="text-2xl font-display font-bold text-pokemon-black">{{ $formattedPrice }}</span>
+                            <span class="text-2xl font-display font-bold text-pokemon-black">
+                                {{ $product->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }}
+                            </span>
                         </div>
                         
                         <!-- Base currency price (if different) -->
@@ -164,7 +166,7 @@
                                 </button>
                             </div>
                             <span class="text-sm text-brand-gray-500">
-                                Total: {{ $totalPrice->format() }}
+                                Total: {{ $product->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->multipliedBy($quantity)->format() }}
                             </span>
                         </div>
                     @endif

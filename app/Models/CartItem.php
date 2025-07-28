@@ -38,7 +38,8 @@ class CartItem extends Model
      */
     public function getTotalPriceAttribute(): float
     {
-        return $this->product->price * $this->quantity;
+        $currencyCode = \App\Models\Currency::getActiveCurrency();
+        return $this->product->getPriceForCurrency($currencyCode)->getAmount() * $this->quantity / 100;
     }
 }
  

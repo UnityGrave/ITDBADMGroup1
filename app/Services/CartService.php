@@ -90,8 +90,9 @@ class CartService
      */
     public function getTotalPrice(): float
     {
-        return $this->getCartItems()->sum(function ($item) {
-            return $item->product->price * $item->quantity;
+        $currencyCode = \App\Models\Currency::getActiveCurrency();
+        return $this->getCartItems()->sum(function ($item) use ($currencyCode) {
+            return $item->product->getPriceForCurrency($currencyCode)->getAmount() * $item->quantity / 100;
         });
     }
 

@@ -50,8 +50,8 @@
                                         <p class="text-sm text-gray-500">Quantity: {{ $item->quantity }}</p>
                                     </div>
                                     <div class="text-right">
-                                        <p class="text-sm text-gray-500">${{ number_format($item->unit_price, 2) }} each</p>
-                                        <p class="text-sm font-medium text-gray-900">${{ number_format($item->total_price, 2) }}</p>
+                                        <p class="text-sm text-gray-500">{{ $item->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }} each</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ $item->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }}</p>
                                     </div>
                                 </div>
                             @endforeach

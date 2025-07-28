@@ -99,17 +99,15 @@ class OrderProcessingService
                 // Create order items with currency conversion
                 foreach ($cartItems as $cartItem) {
                     $product = $cartItem->product;
-                    
-                    // Convert unit price to base currency for financial integrity
-                    $unitPriceInCents = (int)($product->price * 100);
-                    $priceInBaseCurrency = $activeCurrency->convertToBase($unitPriceInCents);
-                    
+                    $unitPriceMoney = $product->getPriceForCurrency($activeCurrency->code);
+                    $unitPrice = $unitPriceMoney->getAmount() / 100;
+                    $priceInBaseCurrency = $product->base_price_cents;
                     OrderItem::create([
                         'order_id' => $order->id,
                         'product_id' => $product->id,
                         'product_name' => $product->card->name ?? 'Unknown Product',
                         'product_sku' => $product->sku,
-                        'unit_price' => $product->price,
+                        'unit_price' => $unitPrice,
                         'quantity' => $cartItem->quantity,
                         'price_in_base_currency' => $priceInBaseCurrency,
                         'product_details' => [

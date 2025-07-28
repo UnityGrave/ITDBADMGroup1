@@ -107,7 +107,7 @@
                                         </p>
                                     </div>
                                     <div class="ml-4 flex-shrink-0">
-                                        <p class="text-sm font-medium text-pokemon-red">${{ number_format($product->price, 2) }}</p>
+                                        <p class="text-sm font-medium text-pokemon-red">{{ $product->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }}</p>
                                         <p class="text-xs text-brand-gray-500 text-right">
                                             {{ $product->condition->value }}
                                         </p>

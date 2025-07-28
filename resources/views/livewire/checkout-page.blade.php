@@ -404,7 +404,7 @@
                                             </div>
                                         </div>
                                         <p class="text-sm font-medium text-gray-900">
-                                            {{ $this->formatAmount(($item['product']['price'] ?? 0) * ($item['quantity'] ?? 1)) }}
+                                            {{ $item['product']->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }} x {{ $item['quantity'] ?? 1 }}
                                         </p>
                                     </div>
                                 @endforeach
