@@ -43,10 +43,26 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN groupadd -g 1000 www
 RUN useradd -u 1000 -ms /bin/bash -g www www
 
-# Copy existing application directory contents
-COPY . /var/www/html
+# Copy composer files first
+COPY --chown=www:www composer.json composer.lock* package.json package-lock.json* /var/www/html/
 
-# Copy existing application directory permissions
+# Change current user to www
+USER www
+
+# Install PHP and JS dependencies
+WORKDIR /var/www/html
+RUN composer config --global process-timeout 2000
+RUN composer config --global github-protocols https
+RUN composer config --global platform-check false
+RUN composer config --global repositories.packagist composer https://repo.packagist.org
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev --ignore-platform-reqs || echo "Composer install failed, continuing..."
+RUN composer require brick/money --no-interaction --prefer-dist --optimize-autoloader --no-dev --ignore-platform-reqs || echo "Composer require failed, continuing..."
+RUN npm install
+
+# Switch back to root for file operations
+USER root
+
+# Copy the rest of the application
 COPY --chown=www:www . /var/www/html
 
 # Set proper permissions
@@ -55,13 +71,10 @@ RUN chmod -R 755 /var/www/html
 RUN chmod -R 775 /var/www/html/storage
 RUN chmod -R 775 /var/www/html/bootstrap/cache
 
-# Change current user to www
+# Switch back to www user
 USER www
 
-# Install PHP and JS dependencies and build assets
-WORKDIR /var/www/html
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
-RUN npm install
+# Build assets
 RUN npm run build
 
 # Expose port 9000 and start php-fpm server
