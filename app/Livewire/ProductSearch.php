@@ -89,7 +89,7 @@ class ProductSearch extends Component
             } else {
                 // For non-USD, need to convert price range
                 $queryBuilder->whereRaw('CAST(base_price_cents * ? AS SIGNED) <= ?', [
-                    $activeCurrency->rate_to_usd, $maxPrice
+                    $activeCurrency->exchange_rate, $maxPrice
                 ]);
             }
         } elseif (preg_match('/over|above/i', $query) && !empty($prices)) {
@@ -99,7 +99,7 @@ class ProductSearch extends Component
                 $queryBuilder->where('base_price_cents', '>=', $minPrice);
             } else {
                 $queryBuilder->whereRaw('CAST(base_price_cents * ? AS SIGNED) >= ?', [
-                    $activeCurrency->rate_to_usd, $minPrice
+                    $activeCurrency->exchange_rate, $minPrice
                 ]);
             }
         } elseif (count($prices) >= 2) {
@@ -110,7 +110,7 @@ class ProductSearch extends Component
                 $queryBuilder->whereBetween('base_price_cents', [$minPrice, $maxPrice]);
             } else {
                 $queryBuilder->whereRaw('CAST(base_price_cents * ? AS SIGNED) BETWEEN ? AND ?', [
-                    $activeCurrency->rate_to_usd, $minPrice, $maxPrice
+                    $activeCurrency->exchange_rate, $minPrice, $maxPrice
                 ]);
             }
         } elseif (!empty($prices)) {
@@ -122,7 +122,7 @@ class ProductSearch extends Component
                 $queryBuilder->whereBetween('base_price_cents', [$minPrice, $maxPrice]);
             } else {
                 $queryBuilder->whereRaw('CAST(base_price_cents * ? AS SIGNED) BETWEEN ? AND ?', [
-                    $activeCurrency->rate_to_usd, $minPrice, $maxPrice
+                    $activeCurrency->exchange_rate, $minPrice, $maxPrice
                 ]);
             }
         }
