@@ -96,7 +96,7 @@ try {
     
     // Create a test cart item (simulate cart service)
     $cartService = new CartService();
-    $cartService->add($product->id, 2); // Add 2 items
+    $cartService->add($product, 2); // Add 2 items
     
     echo "   Added 2 items to cart\n";
     echo "   Cart total: \${$cartService->getTotalPrice()}\n";
