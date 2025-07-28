@@ -17,8 +17,11 @@ CREATE TABLE IF NOT EXISTS `users` (
     `email_verified_at` TIMESTAMP NULL,
     `password` VARCHAR(255) NOT NULL,
     `remember_token` VARCHAR(100) NULL,
+    `preferred_currency` VARCHAR(3) NULL,
     `created_at` TIMESTAMP NULL,
-    `updated_at` TIMESTAMP NULL
+    `updated_at` TIMESTAMP NULL,
+    FOREIGN KEY (`preferred_currency`) REFERENCES `currencies`(`code`) ON DELETE SET NULL,
+    INDEX `idx_preferred_currency` (`preferred_currency`)
 );
 
 -- Password reset tokens
@@ -171,11 +174,14 @@ CREATE TABLE IF NOT EXISTS `products` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `card_id` BIGINT UNSIGNED NOT NULL,
     `condition` VARCHAR(255) NOT NULL, -- ENUM: NM, LP, MP, HP, DMG (enforced in app/model)
-    `price` DECIMAL(10, 2) NOT NULL,
+    `base_currency_code` VARCHAR(3) NOT NULL DEFAULT 'USD',
+    `base_price_cents` BIGINT NOT NULL,
     `sku` VARCHAR(255) NOT NULL UNIQUE,
     `created_at` TIMESTAMP NULL,
     `updated_at` TIMESTAMP NULL,
-    FOREIGN KEY (`card_id`) REFERENCES `cards`(`id`)
+    FOREIGN KEY (`card_id`) REFERENCES `cards`(`id`),
+    FOREIGN KEY (`base_currency_code`) REFERENCES `currencies`(`code`),
+    INDEX `idx_base_currency_code` (`base_currency_code`)
 );
 
 -- Inventory table
@@ -220,6 +226,9 @@ CREATE TABLE IF NOT EXISTS `orders` (
     `tax_amount` DECIMAL(10, 2) NOT NULL,
     `shipping_cost` DECIMAL(10, 2) NOT NULL,
     `total_amount` DECIMAL(10, 2) NOT NULL,
+    `currency_code` VARCHAR(3) NOT NULL,
+    `exchange_rate` DECIMAL(18,8) NOT NULL,
+    `total_in_base_currency` BIGINT NOT NULL,
     `shipping_first_name` VARCHAR(255) NOT NULL,
     `shipping_last_name` VARCHAR(255) NOT NULL,
     `shipping_email` VARCHAR(255) NOT NULL,
@@ -239,7 +248,9 @@ CREATE TABLE IF NOT EXISTS `orders` (
     INDEX `orders_user_id_status_index` (`user_id`, `status`),
     INDEX `orders_order_number_index` (`order_number`),
     INDEX `orders_created_at_index` (`created_at`),
-    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+    INDEX `idx_currency_code` (`currency_code`),
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`currency_code`) REFERENCES `currencies`(`code`) ON DELETE RESTRICT
 );
 
 -- Order items table
@@ -250,6 +261,7 @@ CREATE TABLE IF NOT EXISTS `order_items` (
     `product_name` VARCHAR(255) NOT NULL,
     `product_sku` VARCHAR(255) NOT NULL,
     `unit_price` DECIMAL(10, 2) NOT NULL,
+    `price_in_base_currency` BIGINT NOT NULL,
     `quantity` INT NOT NULL,
     `total_price` DECIMAL(10, 2) NOT NULL,
     `product_details` JSON NULL,
@@ -396,7 +408,6 @@ ALTER TABLE `archived_inventory_adjustments`
 
 DELIMITER //
 
--- sp_PlaceOrder - Complete order placement with inventory management
 CREATE PROCEDURE sp_PlaceOrder(
     IN p_user_id BIGINT UNSIGNED,
     IN p_shipping_first_name VARCHAR(50),
@@ -452,7 +463,6 @@ BEGIN
         END IF;
     END;
     
-    -- Input validation
     IF p_shipping_first_name IS NULL OR p_shipping_last_name IS NULL OR 
        p_shipping_email IS NULL OR p_shipping_phone IS NULL OR
        p_shipping_address_line_1 IS NULL OR p_shipping_city IS NULL OR 
@@ -928,27 +938,25 @@ AFTER UPDATE ON orders
 FOR EACH ROW
 BEGIN
     -- If order status changes to "shipped", log the shipment
-    IF OLD.status != NEW.status AND NEW.status = 'shipped' THEN
+    IF OLD.status != NEW.status AND NEW.status = "shipped" THEN
         INSERT INTO order_status_log (
             order_id, old_status, new_status, changed_by, 
             change_reason, created_at
         ) VALUES (
             NEW.id, OLD.status, NEW.status, IFNULL(@current_user_id, 1),
-            'Order shipped', NOW()
+            "Order shipped", NOW()
         );
     END IF;
     
-    -- If order is cancelled, create inventory adjustment record
-    IF OLD.status != NEW.status AND NEW.status = 'cancelled' THEN
+    -- If order is cancelled, create inventory adjustment record (backup to stored procedure)
+    IF OLD.status != NEW.status AND NEW.status = "cancelled" THEN
         INSERT INTO inventory_adjustments (
             order_id, adjustment_type, reason, created_at
         ) VALUES (
-            NEW.id, 'restore', 'Order cancelled', NOW()
+            NEW.id, "restore", "Order cancelled", NOW()
         );
     END IF;
 END//
-
-DELIMITER ;
 
 -- tr_products_price_history - Price Change Tracking
 DELIMITER //
