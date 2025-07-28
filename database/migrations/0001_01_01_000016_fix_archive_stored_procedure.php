@@ -11,7 +11,7 @@ return new class extends Migration
         DB::unprepared('
             CREATE TABLE IF NOT EXISTS archived_inventory_adjustments LIKE inventory_adjustments;
             
-            -- Add archived_at column if it doesn't exist
+            -- Add archived_at column if it doesnt exist
             SET @archived_at_exists = (
                 SELECT COUNT(*)
                 FROM information_schema.columns
