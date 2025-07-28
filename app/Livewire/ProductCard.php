@@ -30,13 +30,6 @@ class ProductCard extends Component
             productId: $this->product->id, 
             quantity: $this->quantity
         );
-
-        // Show success feedback
-        $this->js("
-            if (typeof window.showToast === 'function') {
-                window.showToast('Added to cart!', 'success');
-            }
-        ");
     }
 
     /**

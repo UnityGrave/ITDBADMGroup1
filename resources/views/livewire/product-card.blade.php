@@ -18,32 +18,36 @@
 <div class="h-full flex flex-col">
     <!-- Card Image -->
     <div class="aspect-[1/1] bg-brand-gray-100 rounded-t-lg overflow-hidden">
-        @if($product->image_url ?? false)
-            <img 
-                src="{{ $product->image_url }}" 
-                alt="{{ $product->card->name }}" 
-                class="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-300" 
-            />
-        @else
-            <div class="w-full h-full flex items-center justify-center">
-                <span class="text-4xl text-brand-gray-300">🃏</span>
-            </div>
-        @endif
+        <a href="{{ route('products.show', ['product' => $product->sku]) }}" class="block w-full h-full">
+            @if($product->image_url ?? false)
+                <img 
+                    src="{{ $product->image_url }}" 
+                    alt="{{ $product->card->name }}" 
+                    class="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-300" 
+                />
+            @else
+                <div class="w-full h-full flex items-center justify-center">
+                    <span class="text-4xl text-brand-gray-300">🃏</span>
+                </div>
+            @endif
+        </a>
     </div>
 
     <!-- Card Details -->
     <div class="flex-1 p-3 flex flex-col">
         <!-- Title and Set -->
         <div class="mb-1.5">
-            <h3 class="font-display font-bold text-pokemon-black text-base leading-tight line-clamp-1">
-                {{ $product->card->name ?? 'Product' }}
-            </h3>
-            <div class="flex items-center gap-1.5 mt-0.5">
-                <span class="text-base leading-none">{{ $rarityIcon }}</span>
-                <p class="text-xs text-brand-gray-600 line-clamp-1">
-                    {{ $product->card->set->name ?? 'Unknown Set' }}
-                </p>
-            </div>
+            <a href="{{ route('products.show', ['product' => $product->sku]) }}" class="block">
+                <h3 class="font-display font-bold text-pokemon-black text-base leading-tight line-clamp-1 hover:text-pokemon-red transition-colors duration-200">
+                    {{ $product->card->name ?? 'Product' }}
+                </h3>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                    <span class="text-base leading-none">{{ $rarityIcon }}</span>
+                    <p class="text-xs text-brand-gray-600 line-clamp-1">
+                        {{ $product->card->set->name ?? 'Unknown Set' }}
+                    </p>
+                </div>
+            </a>
         </div>
 
         <!-- Price, Condition, and Stock -->
@@ -84,7 +88,7 @@
             </div>
 
             <!-- Quantity Selector -->
-            <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center justify-between gap-2" onclick="event.stopPropagation();">
                 <div class="flex items-center bg-brand-gray-50 rounded-lg overflow-hidden">
                     <button 
                         wire:click="updateQuantity({{ max(1, $quantity - 1) }})"
@@ -126,7 +130,8 @@
                 class="w-full bg-konbini-green text-white py-2 rounded-md text-sm font-medium 
                     hover:bg-green-600 transition-colors duration-200
                     disabled:bg-brand-gray-200 disabled:text-brand-gray-400 disabled:cursor-not-allowed
-                    relative z-20"
+                    relative z-30"
+                onclick="event.stopPropagation();"
             >
                 @if($stock === 0)
                     Out of Stock
