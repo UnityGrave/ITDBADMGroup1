@@ -68,8 +68,11 @@ class OrderItem extends Model
      */
     public function getFormattedTotalPriceAttribute(): string
     {
-        if ($this->order && $this->order->currency) {
-            return $this->order->currency->formatAmount((int)($this->total_price * 100));
+        if ($this->order && $this->order->currency && $this->order->isNonUsdCurrency()) {
+            // Convert from USD (stored amount) to display currency
+            $usdAmountInCents = (int)($this->total_price * 100);
+            $convertedAmount = $this->order->currency->convertFromBase($usdAmountInCents);
+            return $this->order->currency->formatAmount($convertedAmount);
         }
         return '$' . number_format($this->total_price, 2);
     }
@@ -103,5 +106,31 @@ class OrderItem extends Model
     public function getTotalPriceInBaseCurrencyAttribute(): int
     {
         return $this->price_in_base_currency * $this->quantity;
+    }
+
+    /**
+     * Check if the order item is in a non-USD currency
+     */
+    public function isNonUsdCurrency(): bool
+    {
+        return $this->order && $this->order->isNonUsdCurrency();
+    }
+
+    /**
+     * Get formatted USD unit price
+     */
+    public function getFormattedUsdUnitPriceAttribute(): string
+    {
+        // Since we now store USD amounts directly, no conversion needed
+        return '$' . number_format($this->unit_price, 2);
+    }
+
+    /**
+     * Get formatted USD total price
+     */
+    public function getFormattedUsdTotalPriceAttribute(): string
+    {
+        // Since we now store USD amounts directly, no conversion needed
+        return '$' . number_format($this->total_price, 2);
     }
 }

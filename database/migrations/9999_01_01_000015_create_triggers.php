@@ -54,15 +54,15 @@ return new class extends Migration
             AFTER UPDATE ON products
             FOR EACH ROW
             BEGIN
-                -- Log price changes
-                IF OLD.price != NEW.price THEN
+                -- Log price changes (convert cents to decimal for comparison)
+                IF OLD.base_price_cents != NEW.base_price_cents THEN
                     INSERT INTO price_history (
                         product_id, old_price, new_price, change_amount,
                         change_percentage, changed_by, created_at
                     ) VALUES (
-                        NEW.id, OLD.price, NEW.price, 
-                        (NEW.price - OLD.price),
-                        ROUND(((NEW.price - OLD.price) / OLD.price) * 100, 2),
+                        NEW.id, (OLD.base_price_cents / 100), (NEW.base_price_cents / 100), 
+                        ((NEW.base_price_cents - OLD.base_price_cents) / 100),
+                        ROUND(((NEW.base_price_cents - OLD.base_price_cents) / OLD.base_price_cents) * 100, 2),
                         IFNULL(@current_user_id, 1), NOW()
                     );
                 END IF;
@@ -210,7 +210,7 @@ return new class extends Migration
             FOR EACH ROW
             BEGIN
                 -- Update search index when product details change
-                IF OLD.price != NEW.price OR OLD.`condition` != NEW.`condition` THEN
+                IF OLD.base_price_cents != NEW.base_price_cents OR OLD.`condition` != NEW.`condition` THEN
                     INSERT INTO search_index_updates (
                         table_name, record_id, action, created_at
                     ) VALUES (

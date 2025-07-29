@@ -120,7 +120,7 @@ return new class extends Migration
                 
                 -- Cursor declaration must come after variable declarations
                 DECLARE cart_cursor CURSOR FOR 
-                    SELECT ci.product_id, ci.quantity, p.price, i.stock, c.name, p.sku
+                    SELECT ci.product_id, ci.quantity, (p.base_price_cents / 100), i.stock, c.name, p.sku
                     FROM cart_items ci
                     JOIN products p ON ci.product_id = p.id
                     JOIN inventory i ON p.id = i.product_id
@@ -212,10 +212,11 @@ return new class extends Migration
                             
                             INSERT INTO order_items (
                                 order_id, product_id, product_name, product_sku,
-                                unit_price, quantity, total_price, created_at, updated_at
+                                unit_price, quantity, total_price, price_in_base_currency, created_at, updated_at
                             ) VALUES (
                                 p_order_id, v_product_id, v_product_name, v_product_sku,
-                                v_unit_price, v_quantity, (v_unit_price * v_quantity), NOW(), NOW()
+                                v_unit_price, v_quantity, (v_unit_price * v_quantity), 
+                                (v_unit_price * v_quantity * 100), NOW(), NOW()
                             );
                             
                             UPDATE inventory SET stock = stock - v_quantity WHERE product_id = v_product_id;
@@ -516,7 +517,7 @@ return new class extends Migration
                     s.name as set_name,
                     r.name as rarity_name,
                     i.stock,
-                    p.price
+                    (p.base_price_cents / 100) as price
                 FROM products p
                 JOIN inventory i ON p.id = i.product_id
                 JOIN cards c ON p.card_id = c.id

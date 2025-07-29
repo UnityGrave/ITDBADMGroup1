@@ -176,8 +176,11 @@ class Order extends Model
      */
     public function getFormattedTotalAttribute(): string
     {
-        if ($this->currency) {
-            return $this->currency->formatAmount((int)($this->total_amount * 100));
+        if ($this->currency && $this->isNonUsdCurrency()) {
+            // Convert from USD (stored amount) to display currency
+            $usdAmountInCents = (int)($this->total_amount * 100);
+            $convertedAmount = $this->currency->convertFromBase($usdAmountInCents);
+            return $this->currency->formatAmount($convertedAmount);
         }
         return '$' . number_format($this->total_amount, 2);
     }
@@ -187,8 +190,11 @@ class Order extends Model
      */
     public function getFormattedSubtotalAttribute(): string
     {
-        if ($this->currency) {
-            return $this->currency->formatAmount((int)($this->subtotal * 100));
+        if ($this->currency && $this->isNonUsdCurrency()) {
+            // Convert from USD (stored amount) to display currency
+            $usdAmountInCents = (int)($this->subtotal * 100);
+            $convertedAmount = $this->currency->convertFromBase($usdAmountInCents);
+            return $this->currency->formatAmount($convertedAmount);
         }
         return '$' . number_format($this->subtotal, 2);
     }
@@ -198,8 +204,11 @@ class Order extends Model
      */
     public function getFormattedTaxAmountAttribute(): string
     {
-        if ($this->currency) {
-            return $this->currency->formatAmount((int)($this->tax_amount * 100));
+        if ($this->currency && $this->isNonUsdCurrency()) {
+            // Convert from USD (stored amount) to display currency
+            $usdAmountInCents = (int)($this->tax_amount * 100);
+            $convertedAmount = $this->currency->convertFromBase($usdAmountInCents);
+            return $this->currency->formatAmount($convertedAmount);
         }
         return '$' . number_format($this->tax_amount, 2);
     }
@@ -209,8 +218,11 @@ class Order extends Model
      */
     public function getFormattedShippingCostAttribute(): string
     {
-        if ($this->currency) {
-            return $this->currency->formatAmount((int)($this->shipping_cost * 100));
+        if ($this->currency && $this->isNonUsdCurrency()) {
+            // Convert from USD (stored amount) to display currency
+            $usdAmountInCents = (int)($this->shipping_cost * 100);
+            $convertedAmount = $this->currency->convertFromBase($usdAmountInCents);
+            return $this->currency->formatAmount($convertedAmount);
         }
         return '$' . number_format($this->shipping_cost, 2);
     }
@@ -225,5 +237,54 @@ class Order extends Model
             return $baseCurrency->formatAmount($this->total_in_base_currency);
         }
         return '$' . number_format($this->total_in_base_currency / 100, 2);
+    }
+
+    /**
+     * Check if the order is in a non-USD currency
+     */
+    public function isNonUsdCurrency(): bool
+    {
+        return $this->currency_code !== 'USD';
+    }
+
+    /**
+     * Get USD amounts for the order (for dual currency display)
+     */
+    public function getUsdAmounts(): array
+    {
+        // Since we now store USD amounts directly, just return them
+        return [
+            'subtotal' => $this->subtotal,
+            'shipping' => $this->shipping_cost,
+            'tax' => $this->tax_amount,
+            'total' => $this->total_amount,
+        ];
+    }
+
+    /**
+     * Get formatted USD amounts
+     */
+    public function getFormattedUsdSubtotalAttribute(): string
+    {
+        $usdAmounts = $this->getUsdAmounts();
+        return '$' . number_format($usdAmounts['subtotal'], 2);
+    }
+
+    public function getFormattedUsdShippingAttribute(): string
+    {
+        $usdAmounts = $this->getUsdAmounts();
+        return '$' . number_format($usdAmounts['shipping'], 2);
+    }
+
+    public function getFormattedUsdTaxAttribute(): string
+    {
+        $usdAmounts = $this->getUsdAmounts();
+        return '$' . number_format($usdAmounts['tax'], 2);
+    }
+
+    public function getFormattedUsdTotalAttribute(): string
+    {
+        $usdAmounts = $this->getUsdAmounts();
+        return '$' . number_format($usdAmounts['total'], 2);
     }
 }

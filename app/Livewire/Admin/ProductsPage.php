@@ -42,10 +42,14 @@ class ProductsPage extends Component
     public function create()
     {
         $this->validate();
+        
+        // Convert price from decimal USD to cents
+        $priceInCents = (int)($this->price * 100);
+        
         $product = Product::create([
             'card_id' => $this->card_id,
             'condition' => $this->condition,
-            'price' => $this->price,
+            'base_price_cents' => $priceInCents,
             'sku' => $this->sku,
         ]);
         Inventory::create([
@@ -62,7 +66,8 @@ class ProductsPage extends Component
         $this->editingId = $id;
         $this->card_id = $product->card_id;
         $this->condition = $product->condition->value;
-        $this->price = $product->price;
+        // Convert from cents to decimal USD for display
+        $this->price = $product->base_price_cents / 100;
         $this->sku = $product->sku;
         $this->stock = $product->inventory->stock ?? 0;
     }
@@ -76,11 +81,16 @@ class ProductsPage extends Component
             'sku' => 'required|string|unique:products,sku,' . $this->editingId,
             'stock' => 'required|integer|min:0',
         ]);
+        
         $product = Product::findOrFail($this->editingId);
+        
+        // Convert price from decimal USD to cents
+        $priceInCents = (int)($this->price * 100);
+        
         $product->update([
             'card_id' => $this->card_id,
             'condition' => $this->condition,
-            'price' => $this->price,
+            'base_price_cents' => $priceInCents,
             'sku' => $this->sku,
         ]);
         $product->inventory()->updateOrCreate(
