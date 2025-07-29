@@ -121,6 +121,17 @@ class CartService
     }
 
     /**
+     * Get the total price of all items in the cart in USD (base currency).
+     */
+    public function getUsdTotalPrice(): float
+    {
+        return $this->getCartItems()->sum(function ($item) {
+            $usdPrice = $item->product->getPriceForCurrency('USD');
+            return $usdPrice->getAmountAsDecimal() * $item->quantity;
+        });
+    }
+
+    /**
      * Migrate cart items from session to database when user logs in.
      */
     public function migrateSessionCartToDatabase(): void

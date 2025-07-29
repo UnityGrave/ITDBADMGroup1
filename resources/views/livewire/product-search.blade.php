@@ -32,7 +32,7 @@
         <input
             type="text"
             wire:model.live.debounce.500ms="query"
-            placeholder="Search products..."
+            placeholder="Search by name, set, category, or price (e.g., Charizard, Base Set, $5-20, under $50)..."
             @focus="open = true"
             @keydown="onKeyDown($event)"
             class="w-full pl-10 pr-4 py-2 text-sm text-brand-gray-900 bg-white border border-brand-gray-200 rounded-lg focus:outline-none focus:border-pokemon-red focus:ring-1 focus:ring-pokemon-red"
@@ -80,8 +80,17 @@
         <div wire:loading.remove>
             @if($this->searchResults->isEmpty())
                 @if(strlen($query) >= 2)
-                    <div class="p-4 text-sm text-brand-gray-500 text-center">
-                        No products found for "{{ $query }}"
+                    <div class="p-4 text-sm text-brand-gray-500">
+                        <div class="text-center mb-3">
+                            No products found for "{{ $query }}"
+                        </div>
+                        <div class="text-xs text-brand-gray-400 space-y-1">
+                            <div class="font-medium">Try searching for:</div>
+                            <div>• Card names: <span class="text-pokemon-red">Charizard, Pikachu, Rayquaza</span></div>
+                            <div>• Sets: <span class="text-pokemon-red">Base Set, Evolving Skies</span></div>
+                            <div>• Categories: <span class="text-pokemon-red">Pokémon, Trainer, Energy</span></div>
+                            <div>• Price ranges: <span class="text-pokemon-red">$5-20, under $50, over $100</span></div>
+                        </div>
                     </div>
                 @endif
             @else
@@ -103,11 +112,16 @@
                                             {{ $product->card->name }}
                                         </p>
                                         <p class="text-xs text-brand-gray-500">
-                                            {{ $product->card->set->name }} · {{ $product->card->rarity->name }}
+                                            {{ $product->card->set->name }} · {{ $product->card->rarity->name }} · {{ $product->card->category->name }}
                                         </p>
                                     </div>
                                     <div class="ml-4 flex-shrink-0">
-                                        <p class="text-sm font-medium text-pokemon-red">{{ $product->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }}</p>
+                                        @php
+                                            $activeCurrency = \App\Models\Currency::getActiveCurrencyObject();
+                                            $priceObject = $product->getPriceForCurrency($activeCurrency->code ?? 'USD');
+                                            $formattedPrice = $priceObject->format();
+                                        @endphp
+                                        <p class="text-sm font-medium text-pokemon-red">{{ $formattedPrice }}</p>
                                         <p class="text-xs text-brand-gray-500 text-right">
                                             {{ $product->condition->value }}
                                         </p>

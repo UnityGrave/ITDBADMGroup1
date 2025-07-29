@@ -209,22 +209,11 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                     @forelse ($this->products as $product)
-                        <div class="relative z-20 group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
-                            <!-- Product Card with Add to Cart functionality -->
-                            <livewire:product-card :product="$product" :key="'product-listing-'.$product->id" lazy/>
-                            
-                            <!-- Product Details Link (small area) -->
-                            <div class="absolute top-2 right-2">
-                                <a 
-                                    href="{{ route('products.show', ['product' => $product->sku]) }}"
-                                    class="inline-flex items-center justify-center w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors duration-200"
-                                    title="View Product Details"
-                                >
-                                    <svg class="w-4 h-4 text-brand-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                    </svg>
-                                </a>
-                            </div>
+                        <div
+                            class="relative z-20 cursor-pointer group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+                            @click="window.location='{{ route('products.show', ['product' => $product->sku]) }}'"
+                        >
+                        <x-product-card :product="$product" :key="'product-listing-'.$product->id"/>
                         </div>
                     @empty
                         <div class="col-span-full text-center py-12 bg-brand-gray-50 rounded-lg">

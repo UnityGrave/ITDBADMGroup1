@@ -398,14 +398,34 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                                 </svg>
                                             </div>
-                                            <div>
-                                                <h4 class="text-sm font-medium text-gray-900">{{ $item['product']['card']['name'] ?? 'Product Name' }}</h4>
-                                                <p class="text-sm text-gray-500">Qty: {{ $item['quantity'] ?? 1 }}</p>
-                                            </div>
+                                                                                    <div>
+                                            <h4 class="text-sm font-medium text-gray-900">{{ $item['product']['card']['name'] ?? 'Product Name' }}</h4>
+                                            <p class="text-sm text-gray-500">Qty: {{ $item['quantity'] ?? 1 }}</p>
                                         </div>
-                                        <p class="text-sm font-medium text-gray-900">
-                                            {{ $item['product']->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }} x {{ $item['quantity'] ?? 1 }}
-                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        @php
+                                            $product = $item['product'];
+                                            $productModel = \App\Models\Product::find($product['id']);
+                                            $quantity = $item['quantity'] ?? 1;
+                                            $usdPrice = $productModel->getPriceForCurrency('USD');
+                                            $activeCurrencyPrice = $productModel->getPriceForCurrency($this->getActiveCurrencyCode());
+                                            $usdTotal = $usdPrice->getAmountAsDecimal() * $quantity;
+                                            $activeCurrencyTotal = $activeCurrencyPrice->getAmountAsDecimal() * $quantity;
+                                        @endphp
+                                        
+                                        {{-- USD Price (Primary) --}}
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ $this->formatUsdAmount($usdTotal) }}
+                                        </div>
+                                        
+                                        {{-- Converted Currency Price (Secondary, if different) --}}
+                                        @if($this->isNonUsdCurrency())
+                                            <div class="text-xs text-gray-500">
+                                                {{ $this->formatAmount($activeCurrencyTotal) }}
+                                            </div>
+                                        @endif
+                                    </div>
                                     </div>
                                 @endforeach
                             </div>
@@ -450,25 +470,61 @@
                         <div>
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Order Total</h3>
                             <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                                @php
+                                    $usdTotals = $this->getUsdTotals();
+                                    
+                                    // Calculate converted currency amounts from USD base
+                                    if ($this->isNonUsdCurrency() && $this->activeCurrency) {
+                                        $convertedSubtotal = $this->activeCurrency->convertFromBase((int)($usdTotals['subtotal'] * 100)) / 100;
+                                        $convertedShipping = $this->activeCurrency->convertFromBase((int)($usdTotals['shipping'] * 100)) / 100;
+                                        $convertedTax = $this->activeCurrency->convertFromBase((int)($usdTotals['tax'] * 100)) / 100;
+                                        $convertedTotal = $this->activeCurrency->convertFromBase((int)($usdTotals['total'] * 100)) / 100;
+                                    }
+                                @endphp
+                                
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-600">Subtotal</span>
-                                    <span class="text-gray-900">{{ $this->formatAmount($cartTotal) }}</span>
+                                    <div class="text-right">
+                                        <div class="text-gray-900 font-medium">{{ $this->formatUsdAmount($usdTotals['subtotal']) }}</div>
+                                        @if($this->isNonUsdCurrency())
+                                            <div class="text-xs text-gray-500">{{ $this->formatAmount($convertedSubtotal) }}</div>
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-600">Shipping</span>
-                                    <span class="text-gray-900">{{ $this->formatAmount($shippingCost) }}</span>
+                                    <div class="text-right">
+                                        <div class="text-gray-900 font-medium">{{ $this->formatUsdAmount($usdTotals['shipping']) }}</div>
+                                        @if($this->isNonUsdCurrency())
+                                            <div class="text-xs text-gray-500">{{ $this->formatAmount($convertedShipping) }}</div>
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-600">Tax ({{ $taxRate * 100 }}%)</span>
-                                    <span class="text-gray-900">{{ $this->formatAmount($taxAmount) }}</span>
+                                    <div class="text-right">
+                                        <div class="text-gray-900 font-medium">{{ $this->formatUsdAmount($usdTotals['tax']) }}</div>
+                                        @if($this->isNonUsdCurrency())
+                                            <div class="text-xs text-gray-500">{{ $this->formatAmount($convertedTax) }}</div>
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="border-t border-gray-200 pt-2">
                                     <div class="flex justify-between text-lg font-semibold">
                                         <span class="text-gray-900">Total</span>
-                                        <span class="text-pokemon-red">{{ $this->formatAmount($finalTotal) }}</span>
+                                        <div class="text-right">
+                                            <div class="text-pokemon-red">{{ $this->formatUsdAmount($usdTotals['total']) }}</div>
+                                            @if($this->isNonUsdCurrency())
+                                                <div class="text-sm text-gray-500 font-normal">{{ $this->formatAmount($convertedTotal) }}</div>
+                                            @endif
+                                        </div>
                                     </div>
                                     <div class="text-xs text-gray-500 mt-1 text-right">
-                                        Currency: {{ $this->getActiveCurrencyCode() }}
+                                        @if($this->isNonUsdCurrency())
+                                            USD prices with {{ $this->getActiveCurrencyCode() }} conversion below
+                                        @else
+                                            Currency: USD
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -509,29 +565,70 @@
             <div class="space-y-2">
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-600">{{ $cartCount }} item{{ $cartCount !== 1 ? 's' : '' }}</span>
-                    <span class="text-gray-900">{{ $this->formatAmount($cartTotal) }}</span>
+                    <div class="text-right">
+                        @php
+                            $usdTotals = $this->getUsdTotals();
+                            
+                            // Calculate converted currency amounts from USD base
+                            if ($this->isNonUsdCurrency() && $this->activeCurrency) {
+                                $convertedCartTotal = $this->activeCurrency->convertFromBase((int)($usdTotals['subtotal'] * 100)) / 100;
+                                $convertedShipping = $this->activeCurrency->convertFromBase((int)($usdTotals['shipping'] * 100)) / 100;
+                                $convertedTax = $this->activeCurrency->convertFromBase((int)($usdTotals['tax'] * 100)) / 100;
+                                $convertedTotal = $this->activeCurrency->convertFromBase((int)($usdTotals['total'] * 100)) / 100;
+                            }
+                        @endphp
+                        <div class="text-gray-900 font-medium">{{ $this->formatUsdAmount($usdTotals['subtotal']) }}</div>
+                        @if($this->isNonUsdCurrency())
+                            <div class="text-xs text-gray-500">{{ $this->formatAmount($convertedCartTotal) }}</div>
+                        @endif
+                    </div>
                 </div>
                 @if($this->step === 'review')
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-600">Shipping</span>
-                        <span class="text-gray-900">{{ $this->formatAmount($shippingCost) }}</span>
+                        <div class="text-right">
+                            <div class="text-gray-900 font-medium">{{ $this->formatUsdAmount($usdTotals['shipping']) }}</div>
+                            @if($this->isNonUsdCurrency())
+                                <div class="text-xs text-gray-500">{{ $this->formatAmount($convertedShipping) }}</div>
+                            @endif
+                        </div>
                     </div>
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-600">Tax</span>
-                        <span class="text-gray-900">{{ $this->formatAmount($taxAmount) }}</span>
+                        <div class="text-right">
+                            <div class="text-gray-900 font-medium">{{ $this->formatUsdAmount($usdTotals['tax']) }}</div>
+                            @if($this->isNonUsdCurrency())
+                                <div class="text-xs text-gray-500">{{ $this->formatAmount($convertedTax) }}</div>
+                            @endif
+                        </div>
                     </div>
                     <div class="border-t border-gray-200 pt-2">
                         <div class="flex justify-between font-semibold">
                             <span class="text-gray-900">Total</span>
-                            <span class="text-pokemon-red">{{ $this->formatAmount($finalTotal) }}</span>
+                            <div class="text-right">
+                                <div class="text-pokemon-red">{{ $this->formatUsdAmount($usdTotals['total']) }}</div>
+                                @if($this->isNonUsdCurrency())
+                                    <div class="text-sm text-gray-500 font-normal">{{ $this->formatAmount($convertedTotal) }}</div>
+                                @endif
+                            </div>
                         </div>
                         <div class="text-xs text-gray-500 mt-1 text-right">
-                            {{ $this->getActiveCurrencyCode() }}
+                            @if($this->isNonUsdCurrency())
+                                USD prices with {{ $this->getActiveCurrencyCode() }} conversion below
+                            @else
+                                Currency: USD
+                            @endif
                         </div>
                     </div>
                 @else
                     <p class="text-xs text-gray-500 mt-2">Shipping and tax calculated at checkout</p>
-                    <p class="text-xs text-gray-500">Currency: {{ $this->getActiveCurrencyCode() }}</p>
+                    <p class="text-xs text-gray-500">
+                        @if($this->isNonUsdCurrency())
+                            USD prices with {{ $this->getActiveCurrencyCode() }} conversion
+                        @else
+                            Currency: USD
+                        @endif
+                    </p>
                 @endif
             </div>
         </div>

@@ -1,6 +1,8 @@
 @props(['product'])
 
 @php
+    use App\Models\Currency;
+
     $stock = $product->inventory->stock ?? 0;
     $rarity = $product->card->rarity ?? null;
     $rarityIcon = match($rarity->name ?? '') {
@@ -11,6 +13,13 @@
         'Common' => '●',
         default => '❓'
     };
+    
+    // Get current active currency
+    $currentCurrency = Currency::getActiveCurrency();
+    
+    // Get price in current currency using the same logic as Livewire components
+    $priceObject = $product->getPriceForCurrency($currentCurrency);
+    $formattedPrice = $priceObject->format();
 @endphp
 
 <div class="h-full flex flex-col">
@@ -45,7 +54,7 @@
         </div>
 
         <!-- Price, Condition, and Stock -->
-        <div class="mt-auto space-y-2">
+        <div class="mt-auto space-y-2" x-data="{ quantity: 1, caught: false }">
             <div class="flex items-center justify-between text-sm">
                 <span class="text-brand-gray-700">
                     {{ $product->condition->value ?? 'Unknown' }} · {{ $rarity->name ?? 'Unknown Rarity' }}
@@ -53,9 +62,17 @@
             </div>
             
             <div class="flex items-center justify-between gap-2">
-                <span class="font-display font-bold text-pokemon-black">
-                    {{ $product->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }}
-                </span>
+                <!-- Multi-currency price display -->
+                <div class="flex flex-col">
+                    <span class="font-display font-bold text-pokemon-black">
+                        {{ $formattedPrice }}
+                    </span>
+                    @if($currentCurrency !== $product->base_currency_code)
+                        <span class="text-xs text-brand-gray-500">
+                            ({{ $product->base_currency_code }} {{ $product->getFormattedBasePriceAttribute() }})
+                        </span>
+                    @endif
+                </div>
                 <span class="text-xs px-1.5 py-0.5 rounded-full whitespace-nowrap
                     @if($stock === 0) bg-red-100 text-red-700
                     @elseif($stock < 5) bg-konbini-orange/10 text-konbini-orange
@@ -71,26 +88,28 @@
                     @endif
                 </span>
             </div>
-
             <!-- Add to Cart Button -->
             <button
-                x-data="{ caught: false }"
                 @click.stop="
-                    $wire.dispatch('add-to-cart', { productId: {{ $product->id }} });
+                    $wire.dispatch('add-to-cart', { productId: {{ $product->id }}, quantity: quantity });
                     caught = true;
                     setTimeout(() => caught = false, 1200);
                 "
                 :disabled="{{ $stock === 0 ? 'true' : 'false' }}"
-                class="pointer-events-auto w-full bg-konbini-green text-white py-1.5 rounded-md text-sm font-medium 
+                class="pointer-events-auto w-full bg-konbini-green text-white py-2 rounded-md text-sm font-medium 
                     hover:bg-green-600 transition-colors duration-200
                     disabled:bg-brand-gray-200 disabled:text-brand-gray-400 disabled:cursor-not-allowed
                     relative z-20"
             >
-                <span x-show="!caught">Add to Cart</span>
-                <span x-show="caught" class="flex items-center justify-center gap-1">
-                    <span>Caught!</span>
-                    <span class="animate-spin"><x-loading-spinner /></span>
-                </span>
+                @if($stock === 0)
+                    Out of Stock
+                @else
+                    <span x-show="!caught">Add <span x-text="quantity > 1 ? quantity + ' ' : ''"></span>to Cart</span>
+                    <span x-show="caught" class="flex items-center justify-center gap-1">
+                        <span>Caught!</span>
+                        <span class="animate-spin"><x-loading-spinner /></span>
+                    </span>
+                @endif
             </button>
         </div>
     </div>

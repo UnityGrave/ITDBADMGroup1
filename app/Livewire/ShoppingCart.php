@@ -4,6 +4,8 @@ namespace App\Livewire;
 
 use App\Services\CartService;
 use App\Models\Product;
+use App\Models\Currency;
+use App\ValueObjects\Money;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -14,6 +16,7 @@ class ShoppingCart extends Component
     public $cartItems = [];
     public $cartCount = 0;
     public $cartTotal = 0.00;
+    public $activeCurrency = null;
 
     protected $cartService;
 
@@ -24,7 +27,16 @@ class ShoppingCart extends Component
 
     public function mount()
     {
+        $this->loadActiveCurrency();
         $this->refreshCart();
+    }
+
+    /**
+     * Load the active currency for price formatting
+     */
+    public function loadActiveCurrency()
+    {
+        $this->activeCurrency = Currency::getActiveCurrencyObject();
     }
 
     /**
@@ -35,15 +47,24 @@ class ShoppingCart extends Component
     {
         $product = Product::find($productId);
         if ($product) {
-            $this->cartService->add($product, $quantity);
-            $this->refreshCart();
-            
-            // Show success message
-            $this->js("
-                if (typeof window.showToast === 'function') {
-                    window.showToast('Product added to cart!', 'success');
-                }
-            ");
+            try {
+                $this->cartService->add($product, $quantity);
+                $this->refreshCart();
+                
+                // Show success message
+                $this->js("
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Product added to cart!', 'success');
+                    }
+                ");
+            } catch (\Exception $e) {
+                // Handle stock validation errors
+                $this->js("
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('{$e->getMessage()}', 'error');
+                    }
+                ");
+            }
         }
     }
 
@@ -91,8 +112,19 @@ class ShoppingCart extends Component
             return;
         }
 
-        $this->cartService->update($productId, $quantity);
-        $this->refreshCart();
+        try {
+            $this->cartService->update($productId, $quantity);
+            $this->refreshCart();
+        } catch (\Exception $e) {
+            // Handle stock validation errors
+            $this->js("
+                if (typeof window.showToast === 'function') {
+                    window.showToast('{$e->getMessage()}', 'error');
+                }
+            ");
+            // Refresh cart to show correct quantities
+            $this->refreshCart();
+        }
     }
 
     /**
@@ -186,6 +218,72 @@ class ShoppingCart extends Component
 
         // Redirect to checkout page
         return redirect()->route('checkout');
+    }
+
+    /**
+     * Get price in USD for a product
+     */
+    public function getUsdPrice($product): Money
+    {
+        if (is_array($product)) {
+            $productModel = Product::find($product['id']);
+        } else {
+            $productModel = $product;
+        }
+        
+        return $productModel->getPriceForCurrency('USD');
+    }
+
+    /**
+     * Get price in active currency for a product  
+     */
+    public function getActiveCurrencyPrice($product): Money
+    {
+        if (is_array($product)) {
+            $productModel = Product::find($product['id']);
+        } else {
+            $productModel = $product;
+        }
+        
+        $currencyCode = $this->activeCurrency ? $this->activeCurrency->code : 'USD';
+        return $productModel->getPriceForCurrency($currencyCode);
+    }
+
+    /**
+     * Format amount in active currency
+     */
+    public function formatAmount($amount): string
+    {
+        if ($this->activeCurrency) {
+            return $this->activeCurrency->formatAmount((int)($amount * 100));
+        }
+        return '$' . number_format($amount, 2);
+    }
+
+    /**
+     * Get the active currency code
+     */
+    public function getActiveCurrencyCode(): string
+    {
+        return $this->activeCurrency ? $this->activeCurrency->code : 'USD';
+    }
+
+    /**
+     * Check if current currency is different from USD
+     */
+    public function isNonUsdCurrency(): bool
+    {
+        return $this->getActiveCurrencyCode() !== 'USD';
+    }
+
+    /**
+     * Listen for currency changes
+     */
+    #[On('currency-changed')]
+    public function handleCurrencyChange($currency)
+    {
+        $this->loadActiveCurrency();
+        $this->refreshCart();
     }
 
     public function render()
