@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Services\CartService;
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\On;
 
@@ -44,6 +45,31 @@ class ShoppingCart extends Component
                 }
             ");
         }
+    }
+
+    /**
+     * Listen for currency change events
+     */
+    #[On('currency-changed')]
+    public function handleCurrencyChanged($currency)
+    {
+        // Clear all cart caches to force refresh with new currency
+        if (Auth::check()) {
+            $userId = Auth::id();
+            
+            // Clear cart items and count caches
+            cache()->forget("cart_items_user_{$userId}");
+            cache()->forget("cart_count_user_{$userId}");
+            
+            // Clear all currency-specific total caches
+            $currencies = \App\Models\Currency::active()->pluck('code');
+            foreach ($currencies as $currencyCode) {
+                cache()->forget("cart_total_user_{$userId}_{$currencyCode}");
+            }
+        }
+        
+        // Refresh cart to show new currency
+        $this->refreshCart();
     }
 
     /**

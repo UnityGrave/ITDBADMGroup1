@@ -50,8 +50,8 @@
                                         <p class="text-sm text-gray-500">Quantity: {{ $item->quantity }}</p>
                                     </div>
                                     <div class="text-right">
-                                        <p class="text-sm text-gray-500">{{ $item->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }} each</p>
-                                        <p class="text-sm font-medium text-gray-900">{{ $item->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }}</p>
+                                        <p class="text-sm text-gray-500">{{ $item->formatted_unit_price_in_order_currency }} each</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ $item->formatted_total_price }}</p>
                                     </div>
                                 </div>
                             @endforeach
@@ -68,20 +68,20 @@
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Subtotal</span>
-                                <span class="text-gray-900">${{ number_format($order->subtotal, 2) }}</span>
+                                <span class="text-gray-900">{{ $order->formatted_subtotal }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Shipping</span>
-                                <span class="text-gray-900">${{ number_format($order->shipping_cost, 2) }}</span>
+                                <span class="text-gray-900">{{ $order->formatted_shipping_cost }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Tax</span>
-                                <span class="text-gray-900">${{ number_format($order->tax_amount, 2) }}</span>
+                                <span class="text-gray-900">{{ $order->formatted_tax_amount }}</span>
                             </div>
                             <div class="border-t border-gray-200 pt-3">
                                 <div class="flex justify-between text-base font-medium">
                                     <span class="text-gray-900">Total</span>
-                                    <span class="text-pokemon-red">${{ number_format($order->total_amount, 2) }}</span>
+                                    <span class="text-pokemon-red">{{ $order->formatted_total }}</span>
                                 </div>
                             </div>
                         </div>

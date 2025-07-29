@@ -7,6 +7,7 @@ use App\Services\OrderProcessingService;
 use App\Models\Currency;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Rule;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class CheckoutPage extends Component
@@ -231,6 +232,18 @@ class CheckoutPage extends Component
                 window.showToast('Item removed from cart', 'info');
             }
         ");
+    }
+
+    /**
+     * Listen for currency change events
+     */
+    #[On('currency-changed')]
+    public function handleCurrencyChanged($currency)
+    {
+        // Reload currency data and refresh cart
+        $this->loadCurrencyData();
+        $this->refreshCart();
+        $this->calculateTotals();
     }
 
     /**

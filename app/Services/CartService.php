@@ -19,6 +19,7 @@ class CartService
     {
         if (Auth::check()) {
             $this->addToDatabase($product, $quantity);
+            $this->clearCartCache();
         } else {
             $this->addToSession($product, $quantity);
         }
@@ -36,6 +37,7 @@ class CartService
 
         if (Auth::check()) {
             $this->updateInDatabase($productId, $quantity);
+            $this->clearCartCache();
         } else {
             $this->updateInSession($productId, $quantity);
         }
@@ -48,18 +50,22 @@ class CartService
     {
         if (Auth::check()) {
             $this->removeFromDatabase($productId);
+            $this->clearCartCache();
         } else {
             $this->removeFromSession($productId);
         }
     }
 
     /**
-     * Get all cart items.
+     * Get all cart items with caching.
      */
     public function getCartItems(): Collection
     {
         if (Auth::check()) {
-            return $this->getCartItemsFromDatabase();
+            $cacheKey = "cart_items_user_" . Auth::id();
+            return cache()->remember($cacheKey, 300, function () {
+                return $this->getCartItemsFromDatabase();
+            });
         } else {
             return $this->getCartItemsFromSession();
         }
@@ -72,28 +78,46 @@ class CartService
     {
         if (Auth::check()) {
             $this->clearDatabase();
+            $this->clearCartCache();
         } else {
             $this->clearSession();
         }
     }
 
     /**
-     * Get the total number of items in the cart.
+     * Get the total number of items in the cart with caching.
      */
     public function getItemCount(): int
     {
-        return $this->getCartItems()->sum('quantity');
+        if (Auth::check()) {
+            $cacheKey = "cart_count_user_" . Auth::id();
+            return cache()->remember($cacheKey, 300, function () {
+                return $this->getCartItems()->sum('quantity');
+            });
+        } else {
+            return $this->getCartItems()->sum('quantity');
+        }
     }
 
     /**
-     * Get the total price of all items in the cart.
+     * Get the total price of all items in the cart with currency-aware caching.
      */
     public function getTotalPrice(): float
     {
         $currencyCode = \App\Models\Currency::getActiveCurrency();
-        return $this->getCartItems()->sum(function ($item) use ($currencyCode) {
-            return $item->product->getPriceForCurrency($currencyCode)->getAmount() * $item->quantity / 100;
-        });
+        
+        if (Auth::check()) {
+            $cacheKey = "cart_total_user_" . Auth::id() . "_" . $currencyCode;
+            return cache()->remember($cacheKey, 300, function () use ($currencyCode) {
+                return $this->getCartItems()->sum(function ($item) use ($currencyCode) {
+                    return $item->product->getPriceForCurrency($currencyCode)->getAmount() * $item->quantity / 100;
+                });
+            });
+        } else {
+            return $this->getCartItems()->sum(function ($item) use ($currencyCode) {
+                return $item->product->getPriceForCurrency($currencyCode)->getAmount() * $item->quantity / 100;
+            });
+        }
     }
 
     /**
@@ -270,5 +294,27 @@ class CartService
     private function clearSession(): void
     {
         Session::forget(self::SESSION_CART_KEY);
+    }
+
+    /**
+     * Clear all cart-related caches for the current user.
+     */
+    private function clearCartCache(): void
+    {
+        if (Auth::check()) {
+            $userId = Auth::id();
+            
+            // Clear cart items cache
+            cache()->forget("cart_items_user_{$userId}");
+            
+            // Clear cart count cache
+            cache()->forget("cart_count_user_{$userId}");
+            
+            // Clear all currency-specific total caches
+            $currencies = \App\Models\Currency::active()->pluck('code');
+            foreach ($currencies as $currencyCode) {
+                cache()->forget("cart_total_user_{$userId}_{$currencyCode}");
+            }
+        }
     }
 } 

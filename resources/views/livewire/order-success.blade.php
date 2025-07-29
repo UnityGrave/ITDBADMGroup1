@@ -46,7 +46,7 @@
                                     <p class="text-sm text-gray-500">Quantity: {{ $item->quantity }}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm font-medium text-gray-900">{{ $item->getPriceForCurrency(App\Models\Currency::getActiveCurrency())->format() }}</p>
+                                    <p class="text-sm font-medium text-gray-900">{{ $item->formatted_unit_price_in_order_currency }}</p>
                                 </div>
                             </div>
                         @endforeach
