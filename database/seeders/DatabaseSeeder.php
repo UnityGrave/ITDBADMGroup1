@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             RaritySeeder::class,
             SetSeeder::class,
             CardSeeder::class,
+            CurrencySeeder::class, // Add currencies before products for foreign key constraints
             ProductSeeder::class,
             InventorySeeder::class,
             RoleSeeder::class,

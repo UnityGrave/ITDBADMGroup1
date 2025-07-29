@@ -3,16 +3,21 @@
 namespace App\Livewire;
 
 use App\Models\Product;
+use App\Models\Currency;
+use App\ValueObjects\Money;
 use Livewire\Component;
+use Livewire\Attributes\On;
 
 class ProductCard extends Component
 {
     public Product $product;
     public $quantity = 1;
+    public $currency;
 
-    public function mount(Product $product)
+    public function mount(Product $product, $currency = null)
     {
         $this->product = $product;
+        $this->currency = $currency ?: Currency::getActiveCurrency();
     }
 
     /**
@@ -49,6 +54,39 @@ class ProductCard extends Component
     public function updateQuantity($newQuantity)
     {
         $this->quantity = max(1, intval($newQuantity));
+    }
+
+    /**
+     * Get price in selected currency using hybrid pricing logic
+     */
+    public function getPriceInCurrency(): Money
+    {
+        return $this->product->getPriceForCurrency($this->currency);
+    }
+
+    /**
+     * Get formatted price string for display
+     */
+    public function getFormattedPriceProperty(): string
+    {
+        return $this->getPriceInCurrency()->format();
+    }
+
+    /**
+     * Change currency
+     */
+    public function setCurrency($currencyCode)
+    {
+        $this->currency = strtoupper($currencyCode);
+    }
+
+    /**
+     * Listen for global currency change events
+     */
+    #[On('currency-changed')]
+    public function handleCurrencyChange($currency)
+    {
+        $this->currency = $currency;
     }
 
     public function render()

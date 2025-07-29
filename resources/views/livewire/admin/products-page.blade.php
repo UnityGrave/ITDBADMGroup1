@@ -153,7 +153,7 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            ${{ number_format($product->price, 2) }}
+                                            ${{ number_format($product->base_price_cents / 100, 2) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $product->sku }}

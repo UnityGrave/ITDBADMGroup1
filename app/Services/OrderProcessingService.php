@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
+use App\Models\Currency;
 use App\Services\CartService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -38,25 +39,46 @@ class OrderProcessingService
                     throw new Exception('Cannot create order: Cart is empty');
                 }
 
-                // Load necessary relationships to avoid N+1 queries
-                $cartItems->load('product.card.category', 'product.card.set', 'product.card.rarity');
+                // Ensure we have the necessary product relationships loaded
+                // The CartService already loads product.card, so we just need to ensure products are available
+                foreach ($cartItems as $cartItem) {
+                    if (!$cartItem->product) {
+                        throw new Exception('Cart item missing product information');
+                    }
+                }
 
-                // Calculate totals
-                $subtotal = $this->cartService->getTotalPrice();
-                $taxAmount = $subtotal * ($checkoutData['tax_rate'] ?? 0.08);
-                $shippingCost = $checkoutData['shipping_cost'] ?? 9.99;
-                $totalAmount = $subtotal + $taxAmount + $shippingCost;
+                // Get the current active currency for this transaction
+                $activeCurrency = Currency::getActiveCurrencyObject();
+                if (!$activeCurrency) {
+                    throw new Exception('No active currency found for transaction');
+                }
 
-                // Create the order
+                // Get the base currency for conversion calculations
+                $baseCurrency = Currency::getBaseCurrency();
+                if (!$baseCurrency) {
+                    throw new Exception('No base currency configured');
+                }
+                $usdSubtotal = $this->cartService->getUsdTotalPrice();
+                $usdTaxAmount = $usdSubtotal * ($checkoutData['tax_rate'] ?? 0.08);
+                $usdShippingCost = $checkoutData['shipping_cost'];
+                $usdTotalAmount = $usdSubtotal + $usdTaxAmount + $usdShippingCost;
+
+                // Store amounts in cents for precision
+                $totalAmountInCents = (int)($usdTotalAmount * 100);
+
+                // Create the order with USD amounts (base currency)
                 $order = Order::create([
                     'user_id' => $user->id,
                     'status' => 'pending',
                     'payment_method' => $checkoutData['payment_method'] ?? 'cod',
                     'payment_status' => 'pending',
-                    'subtotal' => $subtotal,
-                    'tax_amount' => $taxAmount,
-                    'shipping_cost' => $shippingCost,
-                    'total_amount' => $totalAmount,
+                    'subtotal' => $usdSubtotal,
+                    'tax_amount' => $usdTaxAmount,
+                    'shipping_cost' => $usdShippingCost,
+                    'total_amount' => $usdTotalAmount,
+                    'currency_code' => $activeCurrency->code, // For display purposes
+                    'exchange_rate' => $activeCurrency->exchange_rate, // For display conversion
+                    'total_in_base_currency' => $totalAmountInCents, // Same as total since we store USD
                     'shipping_first_name' => $checkoutData['shipping_first_name'],
                     'shipping_last_name' => $checkoutData['shipping_last_name'],
                     'shipping_email' => $checkoutData['shipping_email'],
@@ -70,17 +92,25 @@ class OrderProcessingService
                     'special_instructions' => $checkoutData['special_instructions'] ?? null,
                 ]);
 
-                // Create order items
+                // Create order items with USD pricing (base currency)
                 foreach ($cartItems as $cartItem) {
                     $product = $cartItem->product;
+                    
+                    // Get USD price for the product (base currency)
+                    $usdPrice = $product->getPriceForCurrency('USD');
+                    $usdUnitPrice = $usdPrice->getAmountAsDecimal();
+                    
+                    // Store prices in cents for precision
+                    $priceInBaseCurrency = (int)($usdUnitPrice * 100);
                     
                     OrderItem::create([
                         'order_id' => $order->id,
                         'product_id' => $product->id,
                         'product_name' => $product->card->name ?? 'Unknown Product',
                         'product_sku' => $product->sku,
-                        'unit_price' => $product->price,
+                        'unit_price' => $usdUnitPrice, // Store USD price
                         'quantity' => $cartItem->quantity,
+                        'price_in_base_currency' => $priceInBaseCurrency, // Same as unit_price since USD
                         'product_details' => [
                             'category' => $product->card->category->name ?? null,
                             'condition' => $product->condition->value ?? null,
@@ -94,12 +124,15 @@ class OrderProcessingService
                 // Clear the user's cart
                 $this->cartService->clear();
 
-                // Log successful order creation
+                // Log successful order creation with currency information
                 Log::info('Order created successfully', [
                     'order_id' => $order->id,
                     'order_number' => $order->order_number,
                     'user_id' => $user->id,
-                    'total_amount' => $totalAmount,
+                    'total_amount_usd' => $usdTotalAmount,
+                    'display_currency_code' => $activeCurrency->code,
+                    'exchange_rate' => $activeCurrency->exchange_rate,
+                    'total_in_base_currency' => $totalAmountInCents,
                     'item_count' => $cartItems->count(),
                 ]);
 
@@ -241,4 +274,4 @@ class OrderProcessingService
 
         return true;
     }
-} 
+}

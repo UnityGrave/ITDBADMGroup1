@@ -46,7 +46,13 @@
                                     <p class="text-sm text-gray-500">Quantity: {{ $item->quantity }}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm font-medium text-gray-900">${{ number_format($item->total_price, 2) }}</p>
+                                    {{-- USD Price (Primary) --}}
+                                    <div class="text-sm font-medium text-gray-900">{{ $item->formatted_usd_total_price }}</div>
+                                    
+                                    {{-- Converted Currency Price (Secondary, if different) --}}
+                                    @if($item->isNonUsdCurrency())
+                                        <div class="text-xs text-gray-500">{{ $item->formatted_total_price }}</div>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -58,20 +64,50 @@
                     <div class="space-y-2">
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Subtotal</span>
-                            <span class="text-gray-900">${{ number_format($order->subtotal, 2) }}</span>
+                            <div class="text-right">
+                                <div class="text-gray-900 font-medium">{{ $order->formatted_usd_subtotal }}</div>
+                                @if($order->isNonUsdCurrency())
+                                    <div class="text-xs text-gray-500">{{ $order->formatted_subtotal }}</div>
+                                @endif
+                            </div>
                         </div>
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Shipping</span>
-                            <span class="text-gray-900">${{ number_format($order->shipping_cost, 2) }}</span>
+                            <div class="text-right">
+                                <div class="text-gray-900 font-medium">{{ $order->formatted_usd_shipping }}</div>
+                                @if($order->isNonUsdCurrency())
+                                    <div class="text-xs text-gray-500">{{ $order->formatted_shipping_cost }}</div>
+                                @endif
+                            </div>
                         </div>
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Tax</span>
-                            <span class="text-gray-900">${{ number_format($order->tax_amount, 2) }}</span>
+                            <div class="text-right">
+                                <div class="text-gray-900 font-medium">{{ $order->formatted_usd_tax }}</div>
+                                @if($order->isNonUsdCurrency())
+                                    <div class="text-xs text-gray-500">{{ $order->formatted_tax_amount }}</div>
+                                @endif
+                            </div>
                         </div>
                         <div class="border-t border-gray-200 pt-2">
                             <div class="flex justify-between text-lg font-semibold">
                                 <span class="text-gray-900">Total</span>
-                                <span class="text-pokemon-red">${{ number_format($order->total_amount, 2) }}</span>
+                                <div class="text-right">
+                                    <div class="text-pokemon-red">{{ $order->formatted_usd_total }}</div>
+                                    @if($order->isNonUsdCurrency())
+                                        <div class="text-sm text-gray-500 font-normal">{{ $order->formatted_total }}</div>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1 text-right">
+                                @if($order->isNonUsdCurrency())
+                                    USD prices with {{ $order->currency_code }} conversion below
+                                @else
+                                    Currency: USD
+                                @endif
+                                @if($order->exchange_rate && $order->exchange_rate != 1.0)
+                                    <br>Exchange Rate: {{ number_format($order->exchange_rate, 4) }}
+                                @endif
                             </div>
                         </div>
                     </div>
