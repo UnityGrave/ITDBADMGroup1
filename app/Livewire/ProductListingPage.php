@@ -99,7 +99,7 @@ class ProductListingPage extends Component
                 ->toArray();
 
             if (!empty($searchResults)) {
-                $query->whereIn('id', $searchResults);
+                $query->whereIn('products.id', $searchResults);
             } else {
                 // Return empty paginator if no search results
                 return new LengthAwarePaginator(
@@ -116,28 +116,30 @@ class ProductListingPage extends Component
 
         // Apply filters
         if ($this->selectedSets) {
-            $query->whereHas('card.set', fn ($q) => $q->whereIn('id', $this->selectedSets));
+            $query->whereHas('card.set', fn ($q) => $q->whereIn('sets.id', $this->selectedSets));
         }
 
         if ($this->selectedCategories) {
-            $query->whereHas('card.category', fn ($q) => $q->whereIn('id', $this->selectedCategories));
+            $query->whereHas('card.category', fn ($q) => $q->whereIn('categories.id', $this->selectedCategories));
         }
 
         if ($this->selectedRarityId) {
-            $query->whereHas('card.rarity', fn ($q) => $q->where('id', $this->selectedRarityId));
+            $query->whereHas('card.rarity', fn ($q) => $q->where('rarities.id', $this->selectedRarityId));
         }
 
         // Apply sorting
         match ($this->sort) {
-            'price_asc' => $query->orderBy('price', 'asc'),
-            'price_desc' => $query->orderBy('price', 'desc'),
+            'price_asc' => $query->orderBy('products.base_price_cents', 'asc'),
+            'price_desc' => $query->orderBy('products.base_price_cents', 'desc'),
             'name_asc' => $query
                 ->join('cards', 'products.card_id', '=', 'cards.id')
-                ->orderBy('cards.name', 'asc'),
+                ->orderBy('cards.name', 'asc')
+                ->select('products.*'), // Ensure we only select product columns
             'set_asc' => $query
                 ->join('cards', 'products.card_id', '=', 'cards.id')
                 ->join('sets', 'cards.set_id', '=', 'sets.id')
-                ->orderBy('sets.name', 'asc'),
+                ->orderBy('sets.name', 'asc')
+                ->select('products.*'), // Ensure we only select product columns
             default => $query->orderBy('products.created_at', 'desc'),
         };
 

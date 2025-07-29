@@ -22,6 +22,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'preferred_currency',
     ];
 
     /**
@@ -99,5 +100,58 @@ class User extends Authenticatable implements MustVerifyEmail
     public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Get the user's preferred currency.
+     */
+    public function preferredCurrency(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Currency::class, 'preferred_currency', 'code');
+    }
+
+    /**
+     * Set the user's preferred currency.
+     */
+    public function setPreferredCurrency(string $currencyCode): void
+    {
+        $this->update(['preferred_currency' => strtoupper($currencyCode)]);
+    }
+
+    /**
+     * Get the user's preferred currency code.
+     * Returns null if no preference is set.
+     */
+    public function getPreferredCurrencyCode(): ?string
+    {
+        return $this->preferred_currency;
+    }
+
+    /**
+     * Check if the user has a preferred currency set.
+     */
+    public function hasPreferredCurrency(): bool
+    {
+        return !empty($this->preferred_currency);
+    }
+
+    /**
+     * Get the effective currency for this user.
+     * Priority: user preference > session > default (USD).
+     */
+    public function getEffectiveCurrency(): string
+    {
+        // First check user preference
+        if ($this->hasPreferredCurrency()) {
+            return $this->preferred_currency;
+        }
+
+        // Then check session
+        if (session()->has('currency')) {
+            return session('currency');
+        }
+
+        // Finally, fall back to default
+        return config('currency.base_currency', 'USD');
     }
 }

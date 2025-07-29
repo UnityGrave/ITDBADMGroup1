@@ -3,13 +3,17 @@
 namespace App\Livewire;
 
 use App\Models\Product;
+use App\Models\Currency;
 use App\Services\CartService;
+use App\ValueObjects\Money;
 use Livewire\Component;
+use Livewire\Attributes\On;
 
 class ProductDetailPage extends Component
 {
     public Product $product;
     public $quantity = 1;
+    public $currency;
     
     protected $cartService;
 
@@ -18,9 +22,10 @@ class ProductDetailPage extends Component
         $this->cartService = $cartService;
     }
 
-    public function mount(Product $product)
+    public function mount(Product $product, $currency = null)
     {
         $this->product = $product->load('card.set', 'card.rarity', 'card.category', 'inventory');
+        $this->currency = $currency ?: Currency::getActiveCurrency();
     }
 
     /**
@@ -79,6 +84,39 @@ class ProductDetailPage extends Component
         if ($this->quantity > 1) {
             $this->quantity--;
         }
+    }
+
+    /**
+     * Get price in selected currency using hybrid pricing logic
+     */
+    public function getPriceInCurrency(): Money
+    {
+        return $this->product->getPriceForCurrency($this->currency);
+    }
+
+    /**
+     * Get formatted price string for display
+     */
+    public function getFormattedPriceProperty(): string
+    {
+        return $this->getPriceInCurrency()->format();
+    }
+
+    /**
+     * Change currency
+     */
+    public function setCurrency($currencyCode)
+    {
+        $this->currency = strtoupper($currencyCode);
+    }
+
+    /**
+     * Listen for global currency change events
+     */
+    #[On('currency-changed')]
+    public function handleCurrencyChange($currency)
+    {
+        $this->currency = $currency;
     }
 
     public function render()

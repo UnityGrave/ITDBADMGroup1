@@ -42,21 +42,45 @@ new class extends Component {
                                     class="block px-4 py-2 text-sm text-brand-gray-700 hover:bg-brand-gray-50" wire:navigate>
                                     All Products
                                 </a>
-                                <a href="{{ route('products.index', ['category' => 'Box']) }}"
+                                <a href="{{ route('products.index', ['category' => 'Pokémon']) }}"
                                     class="block px-4 py-2 text-sm text-brand-gray-700 hover:bg-brand-gray-50" wire:navigate>
-                                    Accessory
+                                    Pokémon
                                 </a>
-                                <a href="{{ route('products.index', ['category' => 'Box']) }}"
+                                <a href="{{ route('products.index', ['category' => 'Trainer']) }}"
                                     class="block px-4 py-2 text-sm text-brand-gray-700 hover:bg-brand-gray-50" wire:navigate>
-                                    Box
+                                    Trainer
                                 </a>
-                                <a href="{{ route('products.index', ['category' => 'Booster Pack']) }}"
+                                <a href="{{ route('products.index', ['category' => 'Energy']) }}"
                                     class="block px-4 py-2 text-sm text-brand-gray-700 hover:bg-brand-gray-50" wire:navigate>
-                                    Booster Packs
+                                    Energy
                                 </a>
-                                <a href="{{ route('products.index', ['category' => 'Single Card']) }}"
+                                <a href="{{ route('products.index', ['category' => 'Pokémon ex']) }}"
                                     class="block px-4 py-2 text-sm text-brand-gray-700 hover:bg-brand-gray-50" wire:navigate>
-                                    Single Cards
+                                    Pokémon ex
+                                </a>
+                                <a href="{{ route('products.index', ['category' => 'Pokémon V']) }}"
+                                    class="block px-4 py-2 text-sm text-brand-gray-700 hover:bg-brand-gray-50" wire:navigate>
+                                    Pokémon V
+                                </a>
+                                <a href="{{ route('products.index', ['category' => 'Pokémon VMAX']) }}"
+                                    class="block px-4 py-2 text-sm text-brand-gray-700 hover:bg-brand-gray-50" wire:navigate>
+                                    Pokémon VMAX
+                                </a>
+                                <a href="{{ route('products.index', ['category' => 'Full Art']) }}"
+                                    class="block px-4 py-2 text-sm text-brand-gray-700 hover:bg-brand-gray-50" wire:navigate>
+                                    Full Art
+                                </a>
+                                <a href="{{ route('products.index', ['category' => 'Alternate Art']) }}"
+                                    class="block px-4 py-2 text-sm text-brand-gray-700 hover:bg-brand-gray-50" wire:navigate>
+                                    Alternate Art
+                                </a>
+                                <a href="{{ route('products.index', ['category' => 'Rainbow Rare']) }}"
+                                    class="block px-4 py-2 text-sm text-brand-gray-700 hover:bg-brand-gray-50" wire:navigate>
+                                    Rainbow Rare
+                                </a>
+                                <a href="{{ route('products.index', ['category' => 'Promo']) }}"
+                                    class="block px-4 py-2 text-sm text-brand-gray-700 hover:bg-brand-gray-50" wire:navigate>
+                                    Promo
                                 </a>
                             </div>
                         </div>
@@ -82,6 +106,9 @@ new class extends Component {
             </div>
 
             <div class="flex items-center space-x-4">
+                <!-- Currency Switcher -->
+                <livewire:currency-switcher />
+                
                 @auth
                     @if(auth()->user()->hasRole('Customer'))
                         <livewire:shopping-cart />

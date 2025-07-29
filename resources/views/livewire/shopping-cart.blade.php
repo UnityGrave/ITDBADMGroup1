@@ -96,9 +96,27 @@
                                     <h4 class="text-sm font-medium text-gray-900 truncate">
                                         {{ $item['product']['card']['name'] ?? 'Product Name' }}
                                     </h4>
-                                    <p class="text-sm text-gray-500">
-                                        ${{ number_format($item['product']['price'] ?? 0, 2) }}
-                                    </p>
+                                    
+                                    {{-- Price Display: USD first, then converted currency --}}
+                                    <div class="text-sm">
+                                        @php
+                                            $product = $item['product'];
+                                            $usdPrice = $this->getUsdPrice($product);
+                                            $activeCurrencyPrice = $this->getActiveCurrencyPrice($product);
+                                        @endphp
+                                        
+                                        {{-- USD Price (Primary) --}}
+                                        <div class="font-medium text-gray-900">
+                                            {{ $usdPrice->format() }}
+                                        </div>
+                                        
+                                        {{-- Converted Currency Price (Secondary, if different) --}}
+                                        @if($this->isNonUsdCurrency())
+                                            <div class="text-xs text-gray-500">
+                                                {{ $activeCurrencyPrice->format() }} {{ $this->getActiveCurrencyCode() }}
+                                            </div>
+                                        @endif
+                                    </div>
                                     
                                     {{-- Quantity Controls --}}
                                     <div class="flex items-center space-x-2 mt-2">
@@ -171,7 +189,29 @@
                     {{-- Subtotal --}}
                     <div class="flex justify-between items-center">
                         <span class="text-base font-medium text-gray-900">Subtotal</span>
-                        <span class="text-lg font-bold text-gray-900">${{ number_format($cartTotal, 2) }}</span>
+                        <div class="text-right">
+                            @php
+                                // Calculate USD total
+                                $usdTotal = 0;
+                                foreach($cartItems as $item) {
+                                    $usdPrice = $this->getUsdPrice($item['product']);
+                                    $usdTotal += $usdPrice->getAmountAsDecimal() * $item['quantity'];
+                                }
+                                
+                                // Format USD total
+                                $usdTotalFormatted = '$' . number_format($usdTotal, 2);
+                            @endphp
+                            
+                            {{-- USD Total (Primary) --}}
+                            <div class="text-lg font-bold text-gray-900">{{ $usdTotalFormatted }}</div>
+                            
+                            {{-- Converted Currency Total (Secondary, if different) --}}
+                            @if($this->isNonUsdCurrency())
+                                <div class="text-sm text-gray-500">
+                                    {{ $this->formatAmount($cartTotal) }}
+                                </div>
+                            @endif
+                        </div>
                     </div>
 
                     {{-- Checkout Button --}}
