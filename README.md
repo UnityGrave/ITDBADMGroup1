@@ -1,413 +1,85 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Konibui — Trading Card Game E-Commerce Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A full-featured e-commerce platform for **trading card games (TCG)**, built with **Laravel 12** and **Livewire**. Konibui pairs a real storefront — catalog, cart, checkout, multi-currency pricing, and full-text search — with **defense-in-depth database security** (application RBAC mirrored by MySQL roles, plus triggers and stored procedures).
 
-## About Laravel
+## Overview
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Konibui models a real TCG marketplace: products are cards belonging to **sets** and **rarities**, tracked through **inventory**, sold via a **cart → checkout → order** flow, and priced across multiple **currencies**. It was built as a database-administration project, so the schema goes well beyond CRUD — it enforces security and business rules at the database layer itself.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **TCG catalog** — products organised by card, set, rarity, and category
+- **Inventory management** — stock tracked per product
+- **Cart & checkout** — add to cart, checkout, and order-success flow
+- **Order management** — orders, order items, and status updates
+- **Multi-currency** — per-currency pricing with product price overrides and a user's preferred currency (via `brick/money`)
+- **Full-text search** — powered by Laravel Scout + the TNTSearch driver
+- **Authentication** — Laravel Breeze
+- **Admin area** — product and user management, order status control
+- **Defense-in-depth security:**
+  - Application **role-based access control** (Admin / Employee / Customer)
+  - **MySQL database roles** mirroring the app roles, so restrictions hold even if the app layer is bypassed
+  - **Triggers** and **stored procedures** for data integrity and business logic
 
-## Learning Laravel
+## Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+| Layer | Technology |
+|-------|-----------|
+| Framework | **Laravel 12** (PHP 8.2) |
+| Interactivity | **Livewire 3** + Volt |
+| Auth | Laravel Breeze |
+| Search | Laravel Scout + TeamTNT TNTSearch |
+| Money | brick/money (multi-currency) |
+| Database | **MySQL 8** (roles, triggers, stored procedures) |
+| Infra | Docker Compose — app (PHP-FPM), Nginx, MySQL, phpMyAdmin |
+| Tooling | Vite, Pint, Pest/PHPUnit |
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Data Model (key entities)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+`Card` · `Set` · `Rarity` · `Category` · `Product` · `Inventory` · `CartItem` · `Order` · `OrderItem` · `Currency` · `ProductPriceOverride` · `Role` · `User`
 
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-
-# Konibui E-commerce Platform
-
-A modern e-commerce platform built with Laravel 12 and Docker, featuring a comprehensive buyback system for product resale.
-
-## 🚀 Getting Started
-
-This project uses Docker Compose to orchestrate a complete development environment with Laravel, MySQL, Nginx, and phpMyAdmin.
+## Getting Started (Docker)
 
 ### Prerequisites
+- Docker Desktop
+- Composer, Node.js + npm (for local asset builds)
 
-- Docker Desktop installed and running
-- Git for version control
-- Composer (for local dependency management)
-- Node.js and npm (for asset compilation)
-- At least 4GB of available RAM
-
-### Quick Setup
-
-Follow these simple steps to get your development environment running:
-
-#### 1. Clone the Repository
+### Setup
 ```bash
-git clone https://github.com/yourusername/ITDBADMGroup1.git
+git clone https://github.com/UnityGrave/ITDBADMGroup1.git
 cd ITDBADMGroup1
-```
 
-### 2. **Environment Setup**
-```bash
-# Copy environment file
-cp .env.example .env
+cp .env.example .env               # then set APP_NAME=Konibui and DB_* values
 
-# Update these values in .env
-APP_NAME=Konibui
-APP_URL=http://localhost:8080
-DB_CONNECTION=mysql
-DB_HOST=db
-DB_DATABASE=konibui
-DB_USERNAME=konibui_user
-DB_PASSWORD=konibui_password
-```
-
-#### 3. Build and Start the Environment
-```bash
-docker-compose up -d --build
-```
-
-#### 4. Install Laravel Dependencies
-```bash
-# Install PHP dependencies
+docker-compose up -d --build       # app + MySQL + Nginx + phpMyAdmin
 docker-compose exec app composer install
+npm install && npm run dev
 
-# Install Node.js dependencies
-npm install
-
-# Run vite server
-npm run dev
-```
-
-#### 5. Generate Application Key and Initialize Database
-```bash
-# Generate application key
 docker-compose exec app php artisan key:generate
-
-### 6 .Run database migrations
-docker-compose exec app php artisan migrate
-
-# Seed the database with initial data
 docker-compose exec app php artisan migrate:fresh --seed
 ```
 
-### 🌐 Access Points
+### Access
+- App: `http://localhost:8080`
+- phpMyAdmin: `http://localhost:8081`
 
-Once setup is complete, you can access:
+The database roles, triggers, and stored procedures are created automatically by the migrations. See the repo's `DOCKER_SETUP.md` for details.
 
-- **Main Application**: http://localhost:8080
-- **Database Administration**: http://localhost:8081
-  - Username: `konibui_user`
-  - Password: `konibui_password`
-  - Server: `db`
-
-### 🐳 Docker Services
-
-The environment consists of four interconnected services:
-
-| Service | Container Name | Purpose | Port |
-|---------|---------------|---------|------|
-| **app** | konibui_app | Laravel 12 + PHP 8.2-FPM | Internal: 9000 |
-| **webserver** | konibui_webserver | Nginx reverse proxy | 8080 → 80 |
-| **db** | konibui_db | MySQL 8.0 database | Internal: 3306 |
-| **db-admin** | konibui_phpmyadmin | phpMyAdmin interface | 8081 → 80 |
-
-### 📁 Project Structure
-
+## Project Structure
 ```
-ITDBADMGroup1/
-├── app/                    # Laravel application logic
-├── bootstrap/              # Laravel bootstrap files
-├── config/                 # Laravel configuration files
-├── database/               # Migrations, factories, seeders
-├── docker/                 # Docker configuration files
-│   └── nginx/
-│       └── nginx.conf      # Custom Nginx configuration
-├── public/                 # Web server document root
-├── resources/              # Views, assets, lang files
-├── routes/                 # Application routes
-├── storage/                # Application storage
-├── vendor/                 # Composer dependencies
-├── docker-compose.yml      # Docker services definition
-├── Dockerfile             # Custom PHP-FPM image
-└── .env.example           # Environment variables template
+app/
+  Models/            # Card, Set, Rarity, Product, Inventory, Order, Currency, Role, User…
+  Http/Controllers/  # Product, ProductDetail, Order, Admin, Auth, DefenseInDepthTest
+database/migrations/ # TCG core, products/inventory, cart, orders, multi-currency,
+                     #   MySQL roles, triggers, stored procedures
+routes/web.php       # products, cart, checkout, orders, admin/user management
+resources/           # Livewire/Blade views, assets
 ```
 
-### 🛠️ Common Development Commands
+## Developed At
 
-#### Managing the Environment
-```bash
-# Start all services
-docker-compose up -d
+Database-administration (ITDBADM) course project at **De La Salle University**.
 
-# Stop all services
-docker-compose down
+## License
 
-# Rebuild containers
-docker-compose up -d --build
-
-# View service logs
-docker-compose logs [service_name]
-```
-
-#### Laravel Artisan Commands
-```bash
-# Run migrations
-docker-compose exec app php artisan migrate
-
-# Create migration
-docker-compose exec app php artisan make:migration create_table_name
-
-# Seed database
-docker-compose exec app php artisan db:seed
-
-# Clear caches
-docker-compose exec app php artisan cache:clear
-docker-compose exec app php artisan config:clear
-```
-
-#### Composer Commands
-```bash
-# Install dependencies
-docker-compose exec app composer install
-
-# Add new package
-docker-compose exec app composer require package/name
-
-# Update dependencies
-docker-compose exec app composer update
-```
-
-### 🔧 Configuration
-
-#### Database Settings
-The application is configured to use MySQL with the following default credentials:
-- **Host**: `db` (Docker service name)
-- **Database**: `konibui`
-- **Username**: `konibui_user`
-- **Password**: `konibui_password`
-- **Root Password**: `root_password`
-
-#### Environment Variables
-Key environment variables in `.env`:
-```env
-APP_NAME=Konibui
-APP_URL=http://localhost:8080
-DB_CONNECTION=mysql
-DB_HOST=db
-DB_DATABASE=konibui
-DB_USERNAME=konibui_user
-DB_PASSWORD=konibui_password
-```
-
-### 🚨 Troubleshooting
-
-#### Port Conflicts
-If ports 8080 or 8081 are already in use:
-```yaml
-# In docker-compose.yml, change:
-ports:
-  - "8090:80"  # For webserver
-  - "8082:80"  # For db-admin
-```
-
-#### Permission Issues
-```bash
-# Fix storage permissions
-docker-compose exec app chown -R www:www /var/www/html/storage
-docker-compose exec app chown -R www:www /var/www/html/bootstrap/cache
-```
-
-#### Database Connection Issues
-1. Ensure database container is healthy:
-   ```bash
-   docker-compose ps
-   ```
-2. Check database logs:
-   ```bash
-   docker-compose logs db
-   ```
-
-#### Container Issues
-```bash
-# Remove all containers and start fresh
-docker-compose down --remove-orphans
-docker system prune -f
-docker-compose up -d --build
-```
-
-### 📊 Verification Steps
-
-After setup, verify everything is working:
-
-1. ✅ **All containers running**: `docker-compose ps`
-2. ✅ **Laravel accessible**: Visit http://localhost:8080
-3. ✅ **Database accessible**: Visit http://localhost:8081
-4. ✅ **Database connection**: Check Laravel logs for any database errors
-
-### 🔄 Daily Development Workflow
-
-1. **Start**: `docker-compose up -d`
-2. **Code**: Edit files directly (live-synced via volumes)
-3. **Database**: Use phpMyAdmin or run migrations as needed
-4. **Stop**: `docker-compose down` (when done for the day)
-
-### 🛡️ Database-Layer Security (RBAC)
-
-This application implements **defense-in-depth security** with MySQL roles that mirror Laravel application roles. This provides database-level protection even if the application layer is compromised.
-
-#### MySQL Roles Created
-
-The application creates three MySQL roles through Laravel migrations:
-
-| MySQL Role | Application Role | Privileges | Use Case |
-|------------|------------------|------------|----------|
-| `konibui_admin` | Admin | `SELECT`, `INSERT`, `UPDATE`, `DELETE` on all tables | Full administrative access |
-| `konibui_employee` | Employee | `SELECT`, `INSERT`, `UPDATE` on limited tables | Staff operations, cannot delete |
-| `konibui_customer` | Customer | `SELECT`, `UPDATE` on user profile, `SELECT` on products | Customer-facing operations only |
-
-#### Creating Database Users for Testing
-
-To test database-level security, create MySQL users and assign them roles:
-
-```sql
--- Connect to MySQL as root
-docker-compose exec db mysql -uroot -proot_password
-
--- Create database users for each role
-CREATE USER 'admin_user'@'%' IDENTIFIED BY 'admin_test_pass';
-CREATE USER 'employee_user'@'%' IDENTIFIED BY 'employee_test_pass';
-CREATE USER 'customer_user'@'%' IDENTIFIED BY 'customer_test_pass';
-
--- Grant roles to users
-GRANT 'konibui_admin' TO 'admin_user'@'%';
-GRANT 'konibui_employee' TO 'employee_user'@'%';
-GRANT 'konibui_customer' TO 'customer_user'@'%';
-
--- Activate roles as default
-ALTER USER 'admin_user'@'%' DEFAULT ROLE 'konibui_admin';
-ALTER USER 'employee_user'@'%' DEFAULT ROLE 'konibui_employee';
-ALTER USER 'customer_user'@'%' DEFAULT ROLE 'konibui_customer';
-
-FLUSH PRIVILEGES;
-```
-
-#### Testing with Restricted Database Users
-
-To test the application with restricted database access, update your `.env` file:
-
-**For Admin Testing:**
-```env
-DB_USERNAME=admin_user
-DB_PASSWORD=admin_test_pass
-```
-
-**For Employee Testing:**
-```env
-DB_USERNAME=employee_user
-DB_PASSWORD=employee_test_pass
-```
-
-**For Customer Testing:**
-```env
-DB_USERNAME=customer_user
-DB_PASSWORD=customer_test_pass
-```
-
-#### Running the Database Security Migration
-
-The MySQL roles are created automatically when you run Laravel migrations:
-
-```bash
-# Run the migration to create MySQL roles
-docker-compose exec app php artisan migrate
-
-# Rollback the roles (if needed)
-docker-compose exec app php artisan migrate:rollback
-```
-
-#### Verifying Database-Level Security
-
-Test that database-level restrictions work:
-
-```bash
-# Test customer user cannot delete (should fail)
-docker-compose exec db mysql -ucustomer_user -pcustomer_test_pass -e "DELETE FROM konibui.users WHERE id=1;"
-
-# Test employee user cannot delete users (should fail)
-docker-compose exec db mysql -uemployee_user -pemployee_test_pass -e "DELETE FROM konibui.users WHERE id=1;"
-
-# Test admin user can perform all operations (should work)
-docker-compose exec db mysql -uadmin_user -padmin_test_pass -e "SELECT COUNT(*) FROM konibui.users;"
-```
-
-### 🛡️ Security Notes
-
-- **Defense-in-Depth**: Application-level AND database-level security
-- **Principle of Least Privilege**: Each role has minimum required permissions
-- Default passwords are for **development only**
-- Change all credentials before deploying to production
-- The database port is not exposed externally for security
-- All services communicate via Docker internal network
-- Database roles provide protection even if application is compromised
-
-### 🎯 Next Steps
-
-1. Implement user authentication
-2. Set up e-commerce product catalog
-3. Build the buyback system
-4. Configure payment gateways
-5. Add comprehensive testing
-
----
-
-## Technical Architecture
-
-This project implements a containerized Laravel application with:
-- **PHP 8.2** with FPM for optimal performance
-- **MySQL 8.0** for reliable data storage
-- **Nginx** as reverse proxy and static file server
-- **Docker networking** for service communication
-- **Volume persistence** for database data
-- **Health checks** for reliable startup sequencing
-
-For detailed technical documentation, see `DOCKER_SETUP.md`.
+MIT — see [`LICENSE`](LICENSE). 
